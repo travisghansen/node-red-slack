@@ -6,6 +6,16 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/yayadrian/node-red-slack.git"
+  },
+  "keywords": [
+    "node-red",
+    "slack",
+    "post"
+  ],
+
   "author": "Adrian Lansdown",
   "license": "MIT",
   "dependencies": {
