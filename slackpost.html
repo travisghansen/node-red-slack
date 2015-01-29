@@ -1,0 +1,78 @@
+<!--
+  Copyright 2015 Adrian Lansdown
+  Not created by, affiliated with, or supported by Slack Technologies, Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/x-red" data-template-name="slack">
+    <br/>
+    <!-- By convention, most nodes have a 'name' property. The following div -->
+    <!-- provides the necessary field. Should always be the last option      -->
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <br/>
+    <div class="form-row">
+        <label for="node-input-channelURL"><i class="fa fa-slack"></i> WebHook URL</label>
+        <input type="text" id="node-input-channelURL" placeholder="channelURL">
+    </div>
+
+    <br/>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Posting UserName</label>
+        <input type="text" id="node-input-username" placeholder="username">
+    </div>
+
+    <br/>
+    <div class="form-row">
+        <label for="node-input-emojiIcon"><i class="fa fa-smile-o"></i> Emoji Icon</label>
+        <input type="text" id="node-input-emojiIcon" placeholder=":emojiIcon:">
+    </div>
+
+</script>
+
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/x-red" data-help-name="slack">
+   <p>Sends the <b>msg.payload</b> to Slack</p>
+   <p>Simple way to post to a Slack channel.</p>
+</script>
+
+<!-- Finally, the node type is registered along with all of its properties   -->
+<!-- The example below shows a small subset of the properties that can be set-->
+<script type="text/javascript">
+    RED.nodes.registerType('slack',{
+        category: 'output',      // the palette category
+        defaults: {             // defines the editable properties of the node
+            name: {value:""},   //  along with default values.
+            channelURL: {value:""},
+            username: {value:""},   //  along with default values.
+            emojiIcon: {value:""}   //  along with default values.
+        },
+        color:"#4C9689",
+        icon: "hash.png",
+        align: "right",
+        inputs:1,               // set the number of inputs - only 0 or 1
+        outputs:0,              // set the number of outputs - 0 to n
+        // set the icon (held in icons dir below where you save the node)
+        label: function() {     // sets the default label contents
+            return this.name||"slack";
+        },
+        labelStyle: function() { // sets the class to apply to the label
+            return this.name?"node_label_italic":"";
+        }
+    });
+</script>
