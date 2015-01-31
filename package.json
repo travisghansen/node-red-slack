@@ -1,5 +1,5 @@
 {
-  "name": "node-red-slack",
+  "name": "node-red-contrib-slack",
   "version": "0.0.1",
   "description": "A node-red module to post to Slack.com",
   "main": "slackpost.js",
