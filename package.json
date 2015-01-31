@@ -15,6 +15,11 @@
     "slack",
     "post"
   ],
+  "node-red"     : {
+    "nodes": {
+        "slack": "slackpost.js"
+    }
+  },
 
   "author": "Adrian Lansdown",
   "license": "MIT",
