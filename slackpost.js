@@ -15,16 +15,11 @@
  * limitations under the License.
  **/
 
-// If you use this as a template, update the copyright with your own name.
-
-
-
 module.exports = function(RED) {
     "use strict";
     var request = require('request');
 
     function slackOut(n) {
-        // Create a RED node
         RED.nodes.createNode(this,n);
 
         this.channelURL = n.channelURL;
@@ -32,17 +27,19 @@ module.exports = function(RED) {
         this.emojiIcon = n.emojiIcon || "";
         var node = this;
 
-        // respond to inputs....
         this.on('input', function (msg) {
             var channelURL = node.channelURL || msg.channelURL;
             var username = node.username || msg.username;
             var emojiIcon = node.emojiIcon || msg.emojiIcon;
+            var channel = node.channel || msg.channel;
 
             var data = {
                 "text": msg.payload,
                 "username": username,
                 "icon_emoji": emojiIcon
             };
+            if (channel) { data.channel = channel; }
+            if (msg.attachments) { data.attachments = msg.attachments; }
 
             try {
                 request({
@@ -52,16 +49,9 @@ module.exports = function(RED) {
                 });
             }
             catch (err) {
-                node.log(err);
+                node.log(err,msg);
             }
-
-
         });
     }
-
-    // Register the node by name. This must be called before overriding any of the
-    // Node functions.
     RED.nodes.registerType("slack", slackOut);
-
 };
-
