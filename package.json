@@ -15,15 +15,15 @@
     "slack",
     "post"
   ],
-  "node-red"     : {
+  "node-red": {
     "nodes": {
-        "slack": "slackpost.js"
+      "slack": "slackpost.js"
     }
   },
-
   "author": "Adrian Lansdown",
   "license": "MIT",
   "dependencies": {
-    "request": "^2.51.0"
+    "request": "^2.51.0",
+    "slack-client": "^1.4.0"
   }
 }

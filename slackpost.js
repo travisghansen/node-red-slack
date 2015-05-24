@@ -18,6 +18,114 @@
 module.exports = function(RED) {
     "use strict";
     var request = require('request');
+    var slackBotGlobal = {};
+
+    function slackLogin(token){
+//        console.log("slackglb: ", token);
+        
+        if(slackBotGlobal[token].connected === false) {
+            console.log("not connected");
+            slackBotGlobal[token].login();
+        } else {
+            console.log("connected");  
+        }       
+    }
+
+    function slackBotIn(n) {
+        RED.nodes.createNode(this,n);
+        
+//        console.log("slackObj: ", slackBotGlobal);
+        
+        this.channelName = n.channelname;
+        this.apiToken = n.apiToken;
+        this.botName = n.botName || "";
+        this.emojiIcon = n.emojiIcon || "";
+        var node = this;
+                         
+        var Slack = require('slack-client');
+        
+        var token = this.apiToken;
+        var autoReconnect = true;
+        var autoMark = true;
+     
+        var slack = {};                  
+        if(slackBotGlobal[token]) {
+            slack = slackBotGlobal[token];            
+        } else {
+            slack = new Slack(token, autoReconnect, autoMark);
+            slackBotGlobal[token] = slack;            
+        }
+
+        slack.on('message', function(message) {
+            var msg = { 
+                payload: message.text
+            };
+            msg.slackObj = JSON.stringify(message);
+//            console.log("got a msg");
+            node.send(msg);
+        });
+           
+        slack.on('error', function (error) {
+            console.error('Error: %s', error);
+        });
+        
+        slackLogin(token);
+        setTimeout(function() {
+            slackLogin(token);
+        }, 10000);      
+        
+    };
+    RED.nodes.registerType("slackBotIn", slackBotIn);
+
+    
+    function slackBotOut(n) {
+        RED.nodes.createNode(this,n);
+
+        this.channelName = n.channelname;
+        this.apiToken = n.apiToken;
+        this.botName = n.botName || "";
+        this.emojiIcon = n.emojiIcon || "";
+        var node = this;
+    
+        var Slack = require('slack-client');
+        
+        var token = this.apiToken;
+        var autoReconnect = true;
+        var autoMark = true;
+    
+        var slack = {};                  
+        if(slackBotGlobal[token]) {
+            slack = slackBotGlobal[token];            
+        } else {
+            slack = new Slack(token, autoReconnect, autoMark);
+            slackBotGlobal[token] = slack;            
+        }      
+           
+        this.on('input', function (msg) { 
+            console.log("sending a message");
+            var channelName = node.channelName || msg.channelName;
+            var botName = node.botName || msg.botName;
+            var emojiIcon = node.emojiIcon || msg.emojiIcon;
+            var channel = node.channel || msg.channel;
+            
+            var slackObj = JSON.parse(msg.slackObj);
+           
+           console.log("SLACK!!: ", slackObj);
+           
+            var slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);
+            var user = slack.getUserByID(slackObj.user)
+            var response = '';
+
+            try {
+                slackChannel.send(msg.payload);
+            }
+            catch (err) {
+                node.log(err,msg);
+            }
+        });        
+    }
+    RED.nodes.registerType("slackBotOut", slackBotOut);
+    
 
     function slackOut(n) {
         RED.nodes.createNode(this,n);
