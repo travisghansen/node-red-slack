@@ -60,7 +60,19 @@ module.exports = function(RED) {
             var msg = { 
                 payload: message.text
             };
-            msg.slackObj = JSON.stringify(message);
+            
+            var slackChannel = slack.getChannelGroupOrDMByID(message.channel);
+            var fromUser = slack.getUserByID(message.user);
+            
+            msg.slackObj = {
+                "id": message.id,
+                "type": message.type,
+                "text": message.text,
+                "channelName": slackChannel.name,
+                "channel": message.channel,
+                "fromUser": fromUser.name
+            };
+            
 //            console.log("got a msg");
             node.send(msg);
         });
@@ -108,13 +120,11 @@ module.exports = function(RED) {
             var emojiIcon = node.emojiIcon || msg.emojiIcon;
             var channel = node.channel || msg.channel;
             
-            var slackObj = JSON.parse(msg.slackObj);
+            var slackObj = msg.slackObj;
            
-           console.log("SLACK!!: ", slackObj);
+//           console.log("SLACK!!: ", slackObj);
            
             var slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);
-            var user = slack.getUserByID(slackObj.user)
-            var response = '';
 
             try {
                 slackChannel.send(msg.payload);
