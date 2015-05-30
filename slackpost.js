@@ -114,11 +114,8 @@ module.exports = function(RED) {
     
     function slackBotOut(n) {
         RED.nodes.createNode(this,n);
-
-        this.channelName = n.channelname;
+        
         this.apiToken = n.apiToken;
-        this.botName = n.botName || "";
-        this.emojiIcon = n.emojiIcon || "";
         var node = this;
     
         var Slack = require('slack-client');
@@ -139,14 +136,9 @@ module.exports = function(RED) {
            
         this.on('input', function (msg) { 
             console.log("sending a message");
-            var channelName = node.channelName;
-            var botName = node.botName || msg.botName;
-            var emojiIcon = node.emojiIcon || msg.emojiIcon;
-            var channel = node.channel || msg.channel;
-            
+
             var slackObj = msg.slackObj;
-           
-            var slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);
+            var slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);            
 
             try {
                 slackChannel.send(msg.payload);
@@ -155,12 +147,16 @@ module.exports = function(RED) {
                 node.log(err,msg);
             }
         });
+
+        slack.on('error', function (error) {
+            this.error('Error: %s', error); 
+        });
      
         this.on('close', function() {
             slackLogOut(token);
         });          
     }
-    RED.nodes.registerType("slackBotOut", slackBotOut);
+    RED.nodes.registerType("Slack Bot Out", slackBotOut);
     
 
     function slackOut(n) {

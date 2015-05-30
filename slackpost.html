@@ -73,43 +73,19 @@
    <p>You can optionally limit the channel to listen to - either in the edit dialogue or by setting <b>msg.channel</b>.</p>
 </script>
 
-<script type="text/x-red" data-template-name="slackBotOut">
-    <div class="form-row">
-        <label for="node-input-channelName"><i class="fa fa-slack"></i> channelName</label>
-        <input type="text" id="node-input-channelName" placeholder="channelName" style=" vertical-align: top;">
-    </div>
-
+<script type="text/x-red" data-template-name="Slack Bot Out">
     <div class="form-row">
         <label for="node-input-apiToken"><i class="fa fa-slack"></i> Bot API Token</label>
         <input type="text" id="node-input-apiToken" placeholder="apiToken" style=" vertical-align: top;">
     </div>
-
-    <div class="form-row">
-        <label for="node-input-botname"><i class="fa fa-user"></i> Posting BotName</label>
-        <input type="text" id="node-input-botname" placeholder="botname" style=" vertical-align: top;">
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-emojiIcon"><i class="fa fa-smile-o"></i> Emoji Icon</label>
-        <input type="text" id="node-input-emojiIcon" placeholder=":emojiIcon:" style=" vertical-align: top;">
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-channel"><i class="fa fa-random"></i> Channel</label>
-        <input type="text" id="node-input-channel" placeholder="optional channel override">
-    </div>
-
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="slackBotOut">
-   <p>Sends the <b>msg.payload</b> to Slack.</p>
-   <p>Simple way to post to a Slack channel.</p>
-   <p>You can optionally override the destination channel if required - either in the edit dialogue or by setting <b>msg.channel</b>.</p>
-   <p>You can also create <a href="https://api.slack.com/docs/attachments" target="_new">Slack attachments</a> by adding a <b>msg.attachments</b> property that must be an array.</p>
+<script type="text/x-red" data-help-name="Slack Bot Out">
+   <p>Sends the <b>msg.payload</b> to Slack based on the Bot API token provided.</p>
 </script>
 
 
@@ -119,7 +95,7 @@
         defaults: {
             name: {value:""},
             channelURL: {value:"", required:true},
-            username: {value:""},
+            botName: {value:""},
             emojiIcon: {value:""},
             channel: {value:""}
         },
@@ -156,22 +132,19 @@
         }
     });
 
-    RED.nodes.registerType('slackBotOut',{
+    RED.nodes.registerType('Slack Bot Out',{
         category: 'social',
         defaults: {
             name: {value:""},
-            channelName: {value:"", required:true},
-            apiToken: {value:"", required:true},
-            botname: {value:""},
-            emojiIcon: {value:""}
+            apiToken: {value:"", required:true}           
         },
-        color:"#FF0000",
+        color:"#4C9689",
         icon: "hash.png",
         align: "right",
         inputs:1,
         outputs:0,
         label: function() {
-            return this.name||"slack bot out";
+            return this.name||"";
         },
         labelStyle: function() {
             return this.name?"node_label_italic":"";
