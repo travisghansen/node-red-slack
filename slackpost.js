@@ -46,8 +46,6 @@ module.exports = function(RED) {
         
         this.channel = n.channel || "";
         this.apiToken = n.apiToken;
-        this.botName = n.botName || "";
-        this.emojiIcon = n.emojiIcon || "";
         var node = this;
                          
         var Slack = require('slack-client');
@@ -111,7 +109,7 @@ module.exports = function(RED) {
         });  
         
     };
-    RED.nodes.registerType("slackBotIn", slackBotIn);
+    RED.nodes.registerType("Slack Bot In", slackBotIn);
 
     
     function slackBotOut(n) {
