@@ -53,11 +53,6 @@
 
 <script type="text/x-red" data-template-name="slackBotIn">
     <div class="form-row">
-        <label for="node-input-channelName"><i class="fa fa-slack"></i> channelName</label>
-        <input type="text" id="node-input-channelName" placeholder="channelName" style=" vertical-align: top;">
-    </div>
-
-    <div class="form-row">
         <label for="node-input-apiToken"><i class="fa fa-slack"></i> Bot API Token</label>
         <input type="text" id="node-input-apiToken" placeholder="apiToken" style=" vertical-align: top;">
     </div>
@@ -158,10 +153,10 @@
         category: 'social',
         defaults: {
             name: {value:""},
-            channelName: {value:"", required:true},
             apiToken: {value:"", required:true},
             botname: {value:""},
-            emojiIcon: {value:""}
+            emojiIcon: {value:""},
+            channel: {value:""}
         },
         color:"#FF0000",
         icon: "hash.png",
