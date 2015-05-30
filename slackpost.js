@@ -22,22 +22,19 @@ module.exports = function(RED) {
 
     function slackLogin(token){
         if(slackBotGlobal[token] && slackBotGlobal[token].connected === false) {
-//            console.log("not connected");
+            console.log("not connected");
             slackBotGlobal[token].login();
         } else {
-//            console.log("connected");  
+            console.log("connected");  
         }       
     }
 
     function slackLogOut(token){
         if(slackBotGlobal[token] && slackBotGlobal[token].connected === true) {
-//            console.log("not connected");
             var dis = slackBotGlobal[token].disconnect();
             slackBotGlobal[token].removeAllListeners();
             slackBotGlobal = {};
-        } else {
-//            console.log("connected");  
-        }       
+        }
     }
 
     function slackBotIn(n) {
@@ -95,9 +92,9 @@ module.exports = function(RED) {
         });
         
         slackLogin(token);
-//        setTimeout(function() {
-//            slackLogin(token);
-//        }, 10000);    
+        setTimeout(function() {
+            slackLogin(token);
+        }, 10000);    
      
         this.on('close', function() {
             slackLogOut(token);
