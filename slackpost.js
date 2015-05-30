@@ -111,6 +111,7 @@ module.exports = function(RED) {
         RED.nodes.createNode(this,n);
         
         this.apiToken = n.apiToken;
+        this.channel = n.channel || "";        
         var node = this;
     
         var Slack = require('slack-client');
@@ -130,9 +131,22 @@ module.exports = function(RED) {
         }      
            
         this.on('input', function (msg) { 
-            var slackObj = msg.slackObj;
-            var slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);            
+            var channel = node.channel || msg.channel || "";
 
+            var slackChannel = "";
+            var slackObj = msg.slackObj;
+            
+            if(channel !== "") {
+                slackChannel = slack.getChannelGroupOrDMByName(channel);                 
+            } else {
+                slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);                        
+            }
+    
+            if(slackChannel.is_member === false || slackChannel.is_im === false) {
+                node.warn("Slack bot is not a member of this Channel");                
+                return false;
+            }       
+                        
             try {
                 slackChannel.send(msg.payload);
             }
