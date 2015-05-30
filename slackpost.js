@@ -22,22 +22,21 @@ module.exports = function(RED) {
 
     function slackLogin(token){
         if(slackBotGlobal[token] && slackBotGlobal[token].connected === false) {
-            console.log("not connected");
+//            console.log("not connected");
             slackBotGlobal[token].login();
         } else {
-            console.log("connected");  
+//            console.log("connected");  
         }       
     }
 
     function slackLogOut(token){
         if(slackBotGlobal[token] && slackBotGlobal[token].connected === true) {
-            console.log("not connected");
+//            console.log("not connected");
             var dis = slackBotGlobal[token].disconnect();
-            console.log("dis: ", dis);
             slackBotGlobal[token].removeAllListeners();
             slackBotGlobal = {};
         } else {
-            console.log("connected");  
+//            console.log("connected");  
         }       
     }
 
@@ -56,14 +55,13 @@ module.exports = function(RED) {
      
         var slack = {};                  
         if(slackBotGlobal && slackBotGlobal[token]) {
-            console.log("IN: old slack session");            
+//            console.log("IN: old slack session");            
             slack = slackBotGlobal[token];            
         } else {
-            console.log("IN: new slack session"); 
+//            console.log("IN: new slack session"); 
             slack = new Slack(token, autoReconnect, autoMark);
             slackBotGlobal[token] = slack;            
         }
-
 
         slack.on('message', function(message) {
             var msg = { 
@@ -72,10 +70,7 @@ module.exports = function(RED) {
             
             var slackChannel = slack.getChannelGroupOrDMByID(message.channel);
             var fromUser = slack.getUserByID(message.user);
-            
-            console.log("node.channel: ", node.channel);
-            console.log("slackChanName: ", slackChannel.name);
-            
+                        
             if(node.channel === "" || slackChannel.name === node.channel) {
                 passMsg();
             }
@@ -126,17 +121,15 @@ module.exports = function(RED) {
     
         var slack = {};                  
         if(slackBotGlobal && slackBotGlobal[token]) {
-            console.log("OUT: using an old slack session");
+//            console.log("OUT: using an old slack session");
             slack = slackBotGlobal[token];            
         } else {  
-            console.log("OUT: new slack session");
+//            console.log("OUT: new slack session");
             slack = new Slack(token, autoReconnect, autoMark);
             slackBotGlobal[token] = slack;            
         }      
            
         this.on('input', function (msg) { 
-            console.log("sending a message");
-
             var slackObj = msg.slackObj;
             var slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);            
 
