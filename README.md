@@ -35,3 +35,29 @@ For more information see <i><a href="https://api.slack.com/incoming-webhooks" ta
 
 ## Slack Outgoing Webhook
 <i>Work in progress</i>
+
+
+## Slack Bot In
+<i><a href="https://api.slack.com/bot-users" target="_new">Slack bots</a></i> input node.
+
+Will listen for messages in any channels, Groups or DM the bot is invited to.
+
+Outputs the msg.payload as the incoming message.
+
+Outputs msg.SlackObj with full Slack message details
+
+### Bot API Token
+This can be found on the Bots intregration.
+### Channel
+You can optionally limit the channel for this node to emit messages from. By default it will send all messages recieved.
+
+## Slack Bot Out
+<i><a href="https://api.slack.com/bot-users" target="_new">Slack bots</a></i> output node.
+
+Expects a <b>msg.payload</b> with a string that will be posted to Slack based on the Bot API token provided.
+
+### Bot API Token
+This can be found on the Bots intregration.
+### Destination Channel
+You can optionally override the destination channel if required - either in the edit dialogue or by setting <b>msg.channel</b>.
+The bot must be a member of that channel to post.
