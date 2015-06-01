@@ -19,13 +19,15 @@ module.exports = function(RED) {
     "use strict";
     var request = require('request');
     var slackBotGlobal = {};
+    var connecting = false;
 
     function slackLogin(token){
-        if(slackBotGlobal[token] && slackBotGlobal[token].connected === false) {
-            console.log("not connected");
+        if(slackBotGlobal[token] && slackBotGlobal[token].connected === false && connecting === false) {
+//            console.log("not connected");
+            connecting = true;
             slackBotGlobal[token].login();
         } else {
-            console.log("connected");  
+//            console.log("connected");  
         }       
     }
 
@@ -125,7 +127,7 @@ module.exports = function(RED) {
 //            console.log("OUT: new slack session");
             slack = new Slack(token, autoReconnect, autoMark);
             slackBotGlobal[token] = slack;            
-        }      
+        }     
            
         this.on('input', function (msg) { 
             var channel = node.channel || msg.channel || "";
@@ -139,7 +141,7 @@ module.exports = function(RED) {
                 slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);                        
             }
     
-            if(slackChannel.is_member === false || slackChannel.is_im === false) {
+            if((slackChannel.is_member && slackChannel.is_member === false) || slackChannel.is_im === false) {
                 node.warn("Slack bot is not a member of this Channel");                
                 return false;
             }       
