@@ -33,6 +33,7 @@ module.exports = function(RED) {
 
     function slackLogOut(token){
         if(slackBotGlobal[token] && slackBotGlobal[token].connected === true) {
+            connecting = false;            
             var dis = slackBotGlobal[token].disconnect();
             slackBotGlobal[token].removeAllListeners();
             slackBotGlobal = {};
