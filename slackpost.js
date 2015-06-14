@@ -70,7 +70,13 @@ module.exports = function(RED) {
             
             var slackChannel = slack.getChannelGroupOrDMByID(message.channel);
             var fromUser = slack.getUserByID(message.user);
-                        
+
+            if(!fromUser) {
+                fromUser = { 
+                    name: ""
+                };
+            }
+            
             if(node.channel === "" || slackChannel.name === node.channel) {
                 passMsg();
             }
