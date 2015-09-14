@@ -97,7 +97,7 @@ module.exports = function(RED) {
         });
 
         slack.on('error', function (error) {
-            node.error('Error: %s', error);
+            node.error('Error: ' + error);
         });
 
         slackLogin(token);
@@ -162,7 +162,7 @@ module.exports = function(RED) {
         });
 
         slack.on('error', function (error) {
-            node.error('Error: %s', error);
+            node.error('Error: ' + error);
         });
 
         this.on('close', function() {
