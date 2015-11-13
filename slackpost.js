@@ -148,12 +148,20 @@ module.exports = function(RED) {
             var slackObj = msg.slackObj;
 
             if(channel !== "") {
+                if (debug) node.log("Getting slackChannel from node/message.");
                 slackChannel = slack.getChannelGroupOrDMByName(channel);
             } else {
+                if (debug) node.log("Getting slackChannel from slackObj in message.");
                 slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);
             }
 
             if (debug) node.log(slackChannel);
+            if(typeof slackChannel === "undefined") {
+                node.error("'slackChannel' is defined, check you are specifying a channel in the message (msg.channel) or the node config.");
+                node.error("Message: '" + JSON.stringify(msg));
+                return;
+            }
+
             if((slackChannel.is_member && slackChannel.is_member === false) || slackChannel.is_im === false) {
                 node.warn("Slack bot is not a member of this Channel");
                 return false;
