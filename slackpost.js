@@ -36,8 +36,8 @@ module.exports = function(RED) {
     }
 
     function slackLogOut(token, node){
-        if(slackBotGlobal[token] && slackBotGlobal[token].connected === true) {
-            if (slackDebug) node.log("Slack disconnected");
+        if(slackBotGlobal[token]) {
+            if (slackDebug) node.log("Slack disconnecting.");
             connecting = false;
             var dis = slackBotGlobal[token].disconnect();
             slackBotGlobal[token].removeAllListeners();
