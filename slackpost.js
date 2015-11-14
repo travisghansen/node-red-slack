@@ -23,25 +23,31 @@ module.exports = function(RED) {
     var connecting = false;
 
     // set this to true to spam your console with stuff.
-    var debug = false;
+    var slackDebug = true;
 
     function slackLogin(token, node){
         if(slackBotGlobal[token] && slackBotGlobal[token].connected === false && connecting === false) {
-            if (debug) node.log("Slack not connected");
+            if (slackDebug) node.log("Slack not connected");
             connecting = true;
             slackBotGlobal[token].login();
         } else {
-           if (debug) node.log("Slack connected");
+           if (slackDebug) node.log("Slack already connected");
         }
     }
 
-    function slackLogOut(token){
+    function slackLogOut(token, node){
         if(slackBotGlobal[token] && slackBotGlobal[token].connected === true) {
+            if (slackDebug) node.log("Slack disconnected");
             connecting = false;
             var dis = slackBotGlobal[token].disconnect();
             slackBotGlobal[token].removeAllListeners();
             slackBotGlobal = {};
         }
+    }
+
+    function slackReconnect(token, node) {
+        slackLogOut(token, node);
+        slackLogin(token, node);
     }
 
     function slackBotIn(n) {
@@ -59,11 +65,16 @@ module.exports = function(RED) {
 
         var slack = {};
         if(slackBotGlobal && slackBotGlobal[token]) {
-            if (debug) node.log("IN: old slack session");
+            if (slackDebug) node.log("IN: old slack session");
             slack = slackBotGlobal[token];
         } else {
-            if (debug) node.log("IN: new slack session");
+            if (slackDebug) node.log("IN: new slack session");
             slack = new Slack(token, autoReconnect, autoMark);
+
+            slack.on('loggedIn', function () {
+                node.log('in: Logged in: ');
+            })
+
             slackBotGlobal[token] = slack;
         }
 
@@ -103,6 +114,10 @@ module.exports = function(RED) {
         slack.on('error', function (error) {
             console.trace();
             node.error('Error: ' + error);
+
+            if(error === 'ENOTFOUND') {
+                slackLogin(token, node);
+            }
         });
 
         slackLogin(token, node);
@@ -111,7 +126,7 @@ module.exports = function(RED) {
         }, 10000);
 
         this.on('close', function() {
-            slackLogOut(token);
+            slackLogOut(token, node);
         });
 
     };
@@ -133,33 +148,46 @@ module.exports = function(RED) {
 
         var slack = {};
         if(slackBotGlobal && slackBotGlobal[token]) {
-            if (debug) node.log("OUT: using an old slack session");
+            if (slackDebug) node.log("OUT: using an old slack session");
             slack = slackBotGlobal[token];
         } else {
-            if (debug) node.log("OUT: new slack session");
+            if (slackDebug) node.log("OUT: new slack session");
             slack = new Slack(token, autoReconnect, autoMark);
+
+            slack.on('loggedIn', function () {
+                node.log('OUT: Logged in.');
+            })
+
             slackBotGlobal[token] = slack;
         }
 
         this.on('input', function (msg) {
+            if (slackDebug) node.log(JSON.stringify(msg));
+
+            if(!slack.connected) {
+                node.log('Reconencting to Slack.');
+                slackReconnect(token, node);
+            }
+
             var channel = node.channel || msg.channel || "";
 
             var slackChannel = "";
             var slackObj = msg.slackObj;
 
             if(channel !== "") {
-                if (debug) node.log("Getting slackChannel from node/message.");
+                if (slackDebug) node.log("Getting slackChannel (" + channel +") from node/message.");
                 slackChannel = slack.getChannelGroupOrDMByName(channel);
             } else {
-                if (debug) node.log("Getting slackChannel from slackObj in message.");
+                if (slackDebug) node.log("Getting slackChannel (" + channel +") from slackObj in message.");
                 slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);
             }
 
-            if (debug) node.log(slackChannel);
+            if (slackDebug) node.log(typeof slackChannel);
             if(typeof slackChannel === "undefined") {
-                node.error("'slackChannel' is defined, check you are specifying a channel in the message (msg.channel) or the node config.");
+                node.error("'slackChannel' is not defined, check you are specifying a channel in the message (msg.channel) or the node config.");
                 node.error("Message: '" + JSON.stringify(msg));
-                return;
+                slackLogin(token, node);
+                return false;
             }
 
             if((slackChannel.is_member && slackChannel.is_member === false) || slackChannel.is_im === false) {
@@ -173,12 +201,17 @@ module.exports = function(RED) {
             catch (err) {
                 console.trace();
                 node.log(err,msg);
+
+                // Leave it 10 seconds, then log in again.
+                setTimeout(function() {
+                    slackLogin(token, node);
+                }, 10000);
             }
         });
 
         slack.on('error', function (error) {
             console.trace();
-            node.error('Error: ' + JSON.stringify(error));
+            node.error('Error sending to Slack: ' + JSON.stringify(error));
         });
 
         slackLogin(token, node);
@@ -187,7 +220,7 @@ module.exports = function(RED) {
         }, 10000);
 
         this.on('close', function() {
-            slackLogOut(token);
+            slackLogOut(token, node);
         });
     }
     RED.nodes.registerType("Slack Bot Out", slackBotOut);
@@ -214,7 +247,7 @@ module.exports = function(RED) {
             };
             if (channel) { data.channel = channel; }
             if (msg.attachments) { data.attachments = msg.attachments; }
-
+            if (slackDebug) node.log(JSON.stringify(data));
             try {
                 request({
                     method: 'POST',
