@@ -27,17 +27,17 @@ module.exports = function(RED) {
 
     function slackLogin(token, node){
         if(slackBotGlobal[token] && slackBotGlobal[token].connected === false && connecting === false) {
-            if (slackDebug) node.log("Slack not connected");
+            if (slackDebug) { node.log("Slack not connected"); }
             connecting = true;
             slackBotGlobal[token].login();
         } else {
-           if (slackDebug) node.log("Slack already connected");
+           if (slackDebug) { node.log("Slack already connected"); }
         }
     }
 
     function slackLogOut(token, node){
         if(slackBotGlobal[token]) {
-            if (slackDebug) node.log("Slack disconnecting.");
+            if (slackDebug) { node.log("Slack disconnecting."); }
             connecting = false;
             var dis = slackBotGlobal[token].disconnect();
             slackBotGlobal[token].removeAllListeners();
@@ -65,10 +65,10 @@ module.exports = function(RED) {
 
         var slack = {};
         if(slackBotGlobal && slackBotGlobal[token]) {
-            if (slackDebug) node.log("IN: old slack session");
+            if (slackDebug) { node.log("IN: old slack session"); }
             slack = slackBotGlobal[token];
         } else {
-            if (slackDebug) node.log("IN: new slack session");
+            if (slackDebug) { node.log("IN: new slack session"); }
             slack = new Slack(token, autoReconnect, autoMark);
 
             slack.on('loggedIn', function () {
@@ -148,10 +148,10 @@ module.exports = function(RED) {
 
         var slack = {};
         if(slackBotGlobal && slackBotGlobal[token]) {
-            if (slackDebug) node.log("OUT: using an old slack session");
+            if (slackDebug) { node.log("OUT: using an old slack session"); }
             slack = slackBotGlobal[token];
         } else {
-            if (slackDebug) node.log("OUT: new slack session");
+            if (slackDebug) { node.log("OUT: new slack session"); }
             slack = new Slack(token, autoReconnect, autoMark);
 
             slack.on('loggedIn', function () {
@@ -162,7 +162,7 @@ module.exports = function(RED) {
         }
 
         this.on('input', function (msg) {
-            if (slackDebug) node.log(JSON.stringify(msg));
+            if (slackDebug) { node.log(JSON.stringify(msg)); }
 
             if(!slack.connected) {
                 node.log('Reconencting to Slack.');
@@ -175,10 +175,10 @@ module.exports = function(RED) {
             var slackObj = msg.slackObj;
 
             if(channel !== "") {
-                if (slackDebug) node.log("Getting slackChannel (" + channel +") from node/message.");
+                if (slackDebug) { node.log("Getting slackChannel (" + channel + ") from node/message."); }
                 slackChannel = slack.getChannelGroupOrDMByName(channel);
             } else {
-                if (slackDebug) node.log("Getting slackChannel (" + channel +") from slackObj in message.");
+                if (slackDebug) { node.log("Getting slackChannel (" + channel + ") from slackObj in message."); }
                 slackChannel = slack.getChannelGroupOrDMByID(slackObj.channel);
             }
 
@@ -247,7 +247,7 @@ module.exports = function(RED) {
             };
             if (channel) { data.channel = channel; }
             if (msg.attachments) { data.attachments = msg.attachments; }
-            if (slackDebug) node.log(JSON.stringify(data));
+            if (slackDebug) { node.log(JSON.stringify(data)); }
             try {
                 request({
                     method: 'POST',
