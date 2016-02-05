@@ -190,7 +190,7 @@ module.exports = function(RED) {
                 return false;
             }
 
-            if((slackChannel.is_member && slackChannel.is_member === false) || slackChannel.is_im === false) {
+            if (slackChannel.is_member === false || slackChannel.is_im === false) {
                 node.warn("Slack bot is not a member of this Channel");
                 return false;
             }
