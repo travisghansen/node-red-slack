@@ -232,6 +232,7 @@ module.exports = function(RED) {
         this.channelURL = n.channelURL;
         this.username = n.username || "";
         this.emojiIcon = n.emojiIcon || "";
+        this.channel = n.channel || "";
         var node = this;
 
         this.on('input', function (msg) {
