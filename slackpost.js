@@ -80,7 +80,7 @@ module.exports = function(RED) {
 
         slack.on('message', function(message) {
             var msg = {
-                payload: message.text
+                payload: message.getBody()
             };
 
             var slackChannel = slack.getChannelGroupOrDMByID(message.channel);
@@ -103,7 +103,8 @@ module.exports = function(RED) {
                     "text": message.text,
                     "channelName": slackChannel.name,
                     "channel": message.channel,
-                    "fromUser": fromUser.name
+                    "fromUser": fromUser.name,
+                    "attachments" : message.attachments
                 };
 
                 node.send(msg);
