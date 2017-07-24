@@ -20,15 +20,15 @@ module.exports = function(RED) {
 
     var request = require('request');
     var slackBotGlobal = {};
-    var connecting = false;
+    var slackBotState = {};
 
     // set this to true to spam your console with stuff.
     var slackDebug = true;
 
     function slackLogin(token, node){
-        if(slackBotGlobal[token] && slackBotGlobal[token].connected === false && connecting === false) {
+        if(slackBotGlobal[token] && slackBotGlobal[token].connected === false && slackBotState[token] && slackBotState[token].connecting === false) {
             if (slackDebug) { node.log("Slack not connected"); }
-            connecting = true;
+            slackBotState[token].connecting = true;
             slackBotGlobal[token].login();
         } else {
            if (slackDebug) { node.log("Slack already connected"); }
@@ -38,10 +38,10 @@ module.exports = function(RED) {
     function slackLogOut(token, node){
         if(slackBotGlobal[token]) {
             if (slackDebug) { node.log("Slack disconnecting."); }
-            connecting = false;
+            slackBotState[token].connecting = false;
             var dis = slackBotGlobal[token].disconnect();
             slackBotGlobal[token].removeAllListeners();
-            slackBotGlobal = {};
+            delete slackBotGlobal[token];
         }
     }
 
@@ -64,7 +64,7 @@ module.exports = function(RED) {
         var autoMark = true;
 
         var slack = {};
-        if(slackBotGlobal && slackBotGlobal[token]) {
+        if(slackBotGlobal && slackBotGlobal[token] && slackBotState[token]) {
             if (slackDebug) { node.log("IN: old slack session"); }
             slack = slackBotGlobal[token];
         } else {
@@ -75,6 +75,7 @@ module.exports = function(RED) {
                 node.log('in: Logged in: ');
             })
 
+            slackBotState[token] = {connecting: false};
             slackBotGlobal[token] = slack;
         }
 
@@ -148,7 +149,7 @@ module.exports = function(RED) {
         var autoMark = true;
 
         var slack = {};
-        if(slackBotGlobal && slackBotGlobal[token]) {
+        if(slackBotGlobal && slackBotGlobal[token] && slackBotState[token]) {
             if (slackDebug) { node.log("OUT: using an old slack session"); }
             slack = slackBotGlobal[token];
         } else {
@@ -159,6 +160,7 @@ module.exports = function(RED) {
                 node.log('OUT: Logged in.');
             })
 
+            slackBotState[token] = {connecting: false};
             slackBotGlobal[token] = slack;
         }
 
