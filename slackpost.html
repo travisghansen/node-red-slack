@@ -116,7 +116,7 @@
             return this.name?"node_label_italic":"";
         }
     });
-    
+
     RED.nodes.registerType('Slack Bot In',{
         category: 'social',
         defaults: {
@@ -130,7 +130,7 @@
         inputs:0,
         outputs:1,
         label: function() {
-            return this.name||"";
+            return this.name||"slack bot in";
         },
         labelStyle: function() {
             return this.name?"node_label_italic":"";
@@ -142,7 +142,7 @@
         defaults: {
             name: {value:""},
             apiToken: {value:"", required:true},
-            channel: {value:""}           
+            channel: {value:""}
         },
         color:"#4C9689",
         icon: "hash.png",
@@ -150,11 +150,11 @@
         inputs:1,
         outputs:0,
         label: function() {
-            return this.name||"";
+            return this.name||"slack bot out";
         },
         labelStyle: function() {
             return this.name?"node_label_italic":"";
         }
     });
-    
+
 </script>
