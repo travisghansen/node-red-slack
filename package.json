@@ -23,7 +23,6 @@
   "author": "Adrian Lansdown",
   "license": "MIT",
   "dependencies": {
-    "request": "^2.51.0",
-    "slack-client": "^1.4.0"
+    "@slack/client": "^4.9.0"
   }
 }
