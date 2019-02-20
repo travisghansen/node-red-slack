@@ -640,7 +640,7 @@ module.exports = function(RED) {
           var channel = node.clientNode.findChannelByName(method);
           method = "message";
           options = {
-            text: msg.payload,
+            text: "" + msg.payload,
             channel: channel.id
           };
         }
@@ -735,7 +735,7 @@ module.exports = function(RED) {
           method = "chat.postMessage";
           options = {
             channel: channel.id,
-            text: msg.payload,
+            text: "" + msg.payload,
             as_user: true
           };
         }
