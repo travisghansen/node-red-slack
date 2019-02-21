@@ -443,7 +443,6 @@ module.exports = function(RED) {
             } else if (key.startsWith("team")) {
               if (typeof value === "string" || value instanceof String) {
                 if (!res.hasOwnProperty(key + "Object")) {
-                  SlackDebug("testing team", value, this.state.team);
                   if (value == this.state.team.id)
                     res[key + "Object"] = this.state.team;
                 }
@@ -732,15 +731,14 @@ module.exports = function(RED) {
          */
         var awaitReply = false;
         switch (method) {
-          case "presence_sub":
-          case "presence_query":
-          case "ping":
-          case "typing":
-            awaitReply = false;
-            break;
           case "message":
           case "ping":
             awaitReply = true;
+            break;
+          case "presence_sub":
+          case "presence_query":
+          case "typing":
+            awaitReply = false;
             break;
           default:
             /**
@@ -838,8 +836,8 @@ module.exports = function(RED) {
           method = "chat.postMessage";
           options = {
             channel: channel.id,
-            text: msg.payload,
-            as_user: true
+            text: msg.payload
+            //as_user: true
           };
         }
 
