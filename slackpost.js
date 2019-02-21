@@ -72,6 +72,52 @@ module.exports = function(RED) {
   }
 
   /**
+   * turn any value into a string
+   * https://webbjocke.com/javascript-check-data-types/
+   *
+   * @param {*} value
+   */
+  function ValueToString(value) {
+    if (value && typeof value === "object" && value.constructor === Array) {
+      return JSON.stringify(value);
+    }
+
+    if (value && typeof value === "object" && value.constructor === Object) {
+      return JSON.stringify(value);
+    }
+
+    /**
+     * seeing some really weird cases where the above fail but "" + value
+     * returns '[object Object]'
+     */
+    if (value && typeof value === "object") {
+      return JSON.stringify(value);
+    }
+
+    if (value === null || typeof value === "undefined") {
+      return "";
+    }
+
+    if (typeof value === "boolean") {
+      if (value) {
+        return "true";
+      } else {
+        return "false";
+      }
+    }
+
+    if (typeof value === "number" && isFinite(value)) {
+      return value.toString();
+    }
+
+    if (!!(value && value.constructor && value.call && value.apply)) {
+      return value.toString();
+    }
+
+    return "" + value;
+  }
+
+  /**
    * Common event listeners to set status indicators
    *
    * @param {*} node
@@ -381,21 +427,21 @@ module.exports = function(RED) {
              * dress users, channels, teams, etc
              */
             if (key.startsWith("user")) {
-              if (typeof value === "string") {
+              if (typeof value === "string" || value instanceof String) {
                 if (!res.hasOwnProperty(key + "Object")) {
                   var member = this.findMemberById(value);
                   res[key + "Object"] = member;
                 }
               }
             } else if (key.startsWith("channel")) {
-              if (typeof value === "string") {
+              if (typeof value === "string" || value instanceof String) {
                 if (!res.hasOwnProperty(key + "Object")) {
                   var channel = this.findChannelById(value);
                   res[key + "Object"] = channel;
                 }
               }
             } else if (key.startsWith("team")) {
-              if (typeof value === "string") {
+              if (typeof value === "string" || value instanceof String) {
                 if (!res.hasOwnProperty(key + "Object")) {
                   SlackDebug("testing team", value, this.state.team);
                   if (value == this.state.team.id)
@@ -518,9 +564,29 @@ module.exports = function(RED) {
         SlackDebug("slack-state incomiming message", msg);
 
         node.status(statuses.sending);
-        msg.slackState = node.clientNode.state;
-        node.send(msg);
-        node.status(statuses.connected);
+
+        /**
+         * support for forcing a refresh of data
+         */
+        if (msg.payload === true) {
+          node.clientNode
+            .refreshState()
+            .then(() => {
+              msg.slackState = node.clientNode.state;
+              node.send(msg);
+              node.status(statuses.connected);
+            })
+            .catch(e => {
+              SlackDebug("slack-state error response", e.data);
+              msg.payload = e.data;
+              node.send(msg);
+              node.status(statuses.connected);
+            });
+        } else {
+          msg.slackState = node.clientNode.state;
+          node.send(msg);
+          node.status(statuses.connected);
+        }
       });
     } else {
       node.status(statuses.misconfigured);
@@ -613,9 +679,7 @@ module.exports = function(RED) {
         SlackDebug("slack-rtm-out incomiming message", msg);
 
         /**
-         * return this.addOutgoingEvent(true, 'message', { text, channel: conversationId });
-         * return this.addOutgoingEvent(false, 'typing', { channel: conversationId });
-         * return this.addOutgoingEvent(false, 'presence_sub', { ids: userIds });
+         * message, presence_sub, presence_query, ping, and typing.
          */
         var method = msg.topic;
         var options = msg.payload;
@@ -640,22 +704,50 @@ module.exports = function(RED) {
           var channel = node.clientNode.findChannelByName(method);
           method = "message";
           options = {
-            text: "" + msg.payload,
+            text: msg.payload,
             channel: channel.id
           };
         }
 
-        var awaitReply = true;
+        /**
+         * custom per-method logic
+         */
+        switch (method) {
+          case "message":
+            // force text to be a string
+            options.text = ValueToString(options.text);
+            break;
+        }
+
         /**
          * something seems to block when it's not message events
          * keeping a hard-coded list for now until the 'bug' is squashed
          *
          * https://github.com/slackapi/node-slack-sdk/issues/706
+         *
+         * There's only 5 (public) writable events on RTM: message,
+         * presence_sub, presence_query, ping, and typing.
+         *
+         * The only two that expect responses are message and ping.
          */
+        var awaitReply = false;
         switch (method) {
           case "presence_sub":
           case "presence_query":
+          case "ping":
+          case "typing":
             awaitReply = false;
+            break;
+          case "message":
+          case "ping":
+            awaitReply = true;
+            break;
+          default:
+            /**
+             * go ahead and let invalid methods await so a negative/error
+             * response is returned
+             */
+            awaitReply = true;
             break;
         }
 
@@ -666,6 +758,17 @@ module.exports = function(RED) {
         node.clientNode.rtmClient
           .addOutgoingEvent(awaitReply, method, options)
           .then(res => {
+            /**
+             * mock a response for methods which return nothing
+             * ie: everything but message and ping
+             */
+            if (typeof res === "undefined") {
+              res = {
+                ok: true,
+                type: method
+              };
+            }
+
             SlackDebug("slack-rtm-out call response", res);
             msg.payload = res;
             node.send(msg);
@@ -735,9 +838,19 @@ module.exports = function(RED) {
           method = "chat.postMessage";
           options = {
             channel: channel.id,
-            text: "" + msg.payload,
+            text: msg.payload,
             as_user: true
           };
+        }
+
+        /**
+         * custom per-method logic
+         */
+        switch (method) {
+          case "message":
+            // force text to be a string
+            options.text = ValueToString(options.text);
+            break;
         }
 
         node.status(statuses.sending);
