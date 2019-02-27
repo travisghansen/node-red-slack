@@ -536,12 +536,17 @@ module.exports = function(RED) {
        */
       this.dressResponseMessage = function(res) {
         var node = this;
+        var depth = 0;
         function recurse(data) {
+          depth++;
           for (var key in data) {
             if (data.hasOwnProperty(key)) {
               var value = data[key];
 
-              if (typeof value === "object") {
+              /**
+               * prevent infinite recursion by only going 2 deep
+               */
+              if (typeof value === "object" && depth < 2) {
                 recurse(value);
                 continue;
               }
@@ -586,9 +591,16 @@ module.exports = function(RED) {
               }
             }
           }
+
+          --depth;
         }
 
-        recurse(res);
+        try {
+          recurse(res);
+        } catch (e) {
+          node.error(e);
+        }
+        
         return res;
       };
 
