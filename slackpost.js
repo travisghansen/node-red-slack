@@ -37,7 +37,7 @@ module.exports = function(RED) {
   };
 
   function SlackDebug() {
-    var debug = false;
+    var debug = process.env.SLACK_DEBUG ? true : false;
     if (!debug) {
       return;
     }
@@ -192,6 +192,8 @@ module.exports = function(RED) {
 
   /**
    * Connection/configuration NODE for slack api
+   * make note that when the flows are deployed this function will be
+   * re-ran (along with other nodes)
    *
    * @param {*} n
    */
@@ -213,6 +215,22 @@ module.exports = function(RED) {
 
     if (this.credentials && this.credentials.hasOwnProperty("token")) {
       /**
+       * This can be used to pre-emptively valid API calls when check against
+       * this scopes the user has
+       *
+       * https://api.slack.com/docs/token-types
+       */
+      var tokenType = null;
+      if (this.credentials.token.startsWith("xoxp-")) {
+        tokenType = "user";
+      } else if (this.credentials.token.startsWith("xoxb-")) {
+        tokenType = "bot";
+      } else {
+        // TODO: validate this on the config node
+        tokenType = "invalid";
+      }
+
+      /**
        * meta method to refresh all state data
        */
       this.refreshState = function() {
@@ -221,6 +239,7 @@ module.exports = function(RED) {
         promises.push(this.refreshTeam());
         promises.push(this.refreshChannels());
         promises.push(this.refreshMembers());
+        promises.push(this.refreshBots());
         promises.push(this.refreshUser());
 
         return Promise.all(promises)
@@ -278,6 +297,54 @@ module.exports = function(RED) {
         )
           .then(res => {
             this.state.members = res;
+          })
+          .catch(e => {
+            this.error(e);
+          });
+      };
+
+      /**
+       * update local cache of bots
+       */
+      this.refreshBots = function() {
+        var promises = [];
+        this.state.bots = this.state.bots || [];
+        SlackDebug("start bots", this.state.bots);
+
+        function uniq(a, key) {
+          var seen = {};
+          return a.filter(function(item) {
+            var k = key(item);
+            return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+          });
+        }
+
+        this.state.bots = uniq(this.state.bots, item => {
+          return item.id;
+        });
+
+        this.state.bots.forEach(bot => {
+          var id = bot.id;
+          SlackDebug("webrequest to find bot: " + id);
+          var p = this.webClient
+            .apiCall("bots.info", { bot: id })
+            .then(res => {
+              this.state.bots.find((element, index) => {
+                if (element.id == res.bot.id) {
+                  this.state.bots[index] = res.bot;
+                }
+              }, this);
+            })
+            .catch(e => {
+              this.error(e);
+            });
+
+          promises.push(p);
+        }, this);
+
+        return Promise.all(promises)
+          .then(() => {
+            // TODO: update any internal flags?
           })
           .catch(e => {
             this.error(e);
@@ -415,41 +482,113 @@ module.exports = function(RED) {
       };
 
       /**
+       * lookup bot based off of id
+       */
+      this.findBotById = function(id) {
+        SlackDebug("looking up bot: " + id);
+        this.state.bots = this.state.bots || [];
+        var bot = this.state.bots.find(element => {
+          if (element.id == id) {
+            return true;
+          }
+        });
+
+        if (!bot) {
+          SlackDebug("webrequest to find bot: " + id);
+          this.webClient
+            .apiCall("bots.info", { bot: id })
+            .then(res => {
+              var found = false;
+              this.state.bots.find((element, index) => {
+                if (element.id == res.bot.id) {
+                  this.state.bots[index] = res.bot;
+                  found = true;
+                }
+              }, this);
+
+              if (!found) {
+                this.state.bots.push(res.bot);
+              }
+
+              function uniq(a, key) {
+                var seen = {};
+                return a.filter(function(item) {
+                  var k = key(item);
+                  return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+                });
+              }
+
+              this.state.bots = uniq(this.state.bots, item => {
+                return item.id;
+              });
+            })
+            .catch(e => {
+              //ignore
+            });
+        }
+
+        return bot;
+      };
+
+      /**
        * Takes raw responses from RTM/Web API and adds additional properties
        * to help looking up names/etc as msg flows through nodered
        */
       this.dressResponseMessage = function(res) {
-        for (var key in res) {
-          if (res.hasOwnProperty(key)) {
-            var value = res[key];
+        var node = this;
+        function recurse(data) {
+          for (var key in data) {
+            if (data.hasOwnProperty(key)) {
+              var value = data[key];
 
-            /**
-             * dress users, channels, teams, etc
-             */
-            if (key.startsWith("user")) {
-              if (typeof value === "string" || value instanceof String) {
-                if (!res.hasOwnProperty(key + "Object")) {
-                  var member = this.findMemberById(value);
-                  res[key + "Object"] = member;
-                }
+              if (typeof value === "object") {
+                recurse(value);
+                continue;
               }
-            } else if (key.startsWith("channel")) {
-              if (typeof value === "string" || value instanceof String) {
-                if (!res.hasOwnProperty(key + "Object")) {
-                  var channel = this.findChannelById(value);
-                  res[key + "Object"] = channel;
+
+              /**
+               * dress users, channels, teams, etc
+               */
+              if (key.includes("user")) {
+                if (typeof value === "string" || value instanceof String) {
+                  if (!data.hasOwnProperty(key + "Object")) {
+                    var member = node.findMemberById(value);
+                    if (member) {
+                      data[key + "Object"] = member;
+                    }
+                  }
                 }
-              }
-            } else if (key.startsWith("team")) {
-              if (typeof value === "string" || value instanceof String) {
-                if (!res.hasOwnProperty(key + "Object")) {
-                  if (value == this.state.team.id)
-                    res[key + "Object"] = this.state.team;
+              } else if (key.includes("channel")) {
+                if (typeof value === "string" || value instanceof String) {
+                  if (!data.hasOwnProperty(key + "Object")) {
+                    var channel = node.findChannelById(value);
+                    if (channel) {
+                      data[key + "Object"] = channel;
+                    }
+                  }
+                }
+              } else if (key.includes("team")) {
+                if (typeof value === "string" || value instanceof String) {
+                  if (!data.hasOwnProperty(key + "Object")) {
+                    if (value == node.state.team.id)
+                      data[key + "Object"] = node.state.team;
+                  }
+                }
+              } else if (key.includes("bot")) {
+                if (typeof value === "string" || value instanceof String) {
+                  if (!data.hasOwnProperty(key + "Object")) {
+                    var bot = node.findBotById(value);
+                    if (bot) {
+                      data[key + "Object"] = bot;
+                    }
+                  }
                 }
               }
             }
           }
         }
+
+        recurse(res);
         return res;
       };
 
@@ -468,20 +607,22 @@ module.exports = function(RED) {
        *
        * by default autoReconnect=true and keepAlive settings are enabled
        */
-      this.rtmClient = new RTMClient(this.credentials.token);
+      this.rtmClient = new RTMClient(this.credentials.token, {
+        logLevel: process.env.SLACK_DEBUG ? "debug" : "info"
+      });
 
-      /**
-       * may consider using the .connect() method instead
-       * https://api.slack.com/methods/rtm.start
-       * https://api.slack.com/methods/rtm.connect
-       */
-      this.rtmClient.start().then(res => {
-        SlackDebug("start result " + this.shortToken(), res);
-        this.state.connection = {};
-        this.state.connection.self = res.self;
-        this.state.connection.url = res.url;
-        this.state.connection.scopes = res.scopes;
-        this.state.connection.acceptedScopes = res.acceptedScopes;
+      this.rtmClient.on("disconnected", e => {
+        SlackDebug("disconnected " + this.shortToken(), e);
+        clearInterval(this.refreshIntervalId);
+      });
+
+      this.rtmClient.on("connecting", () => {
+        SlackDebug("connecting " + this.shortToken());
+        clearInterval(this.refreshIntervalId);
+      });
+
+      this.rtmClient.on("authenticated", () => {
+        SlackDebug("authenticated " + this.shortToken());
       });
 
       this.rtmClient.on("connected", () => {
@@ -492,11 +633,32 @@ module.exports = function(RED) {
         this.refreshIntervalId = setInterval(function() {
           node.refreshState();
         }, interval);
+
+        this.on("close", () => {
+          clearInterval(this.refreshIntervalId);
+        });
       });
 
-      this.rtmClient.on("disconnected", () => {
-        SlackDebug("discconnected " + this.shortToken());
+      this.rtmClient.on("ready", () => {
+        SlackDebug("ready " + this.shortToken());
+      });
+
+      this.rtmClient.on("disconnecting", () => {
+        SlackDebug("disconnecting " + this.shortToken());
         clearInterval(this.refreshIntervalId);
+      });
+
+      this.rtmClient.on("reconnecting", () => {
+        SlackDebug("reconnecting " + this.shortToken());
+        clearInterval(this.refreshIntervalId);
+      });
+
+      this.rtmClient.on("error", e => {
+        SlackDebug("error " + this.shortToken(), e);
+      });
+
+      this.rtmClient.on("unable_to_rtm_start", e => {
+        SlackDebug("unable_to_rtm_start " + this.shortToken(), e);
       });
 
       /**
@@ -531,8 +693,89 @@ module.exports = function(RED) {
         }
       });
 
-      this.on("close", () => {
-        this.rtmClient.disconnect();
+      this.startClient = function() {
+        /**
+         * may consider using the .connect() method instead
+         * https://api.slack.com/methods/rtm.start
+         * https://api.slack.com/methods/rtm.connect
+         */
+        this.rtmClient
+          .start()
+          .then(res => {
+            SlackDebug("start result " + this.shortToken(), res);
+            this.state.connection = {};
+            this.state.connection.self = res.self;
+            this.state.connection.url = res.url;
+            this.state.connection.scopes = res.scopes;
+            this.state.connection.acceptedScopes = res.acceptedScopes;
+          })
+          .catch(e => {
+            console.log("failed starting slack session", e);
+          });
+      };
+      this.startClient();
+
+      //start watchdog
+      this.connectionWatchdog = function() {
+        //var interval = (5 * 60 * 1000);
+        var interval = 15 * 1000;
+        var lastState = null;
+        var stateAt = null;
+        var maxUnconnectedStateSeconds = 30;
+        var intervalId = setInterval(() => {
+          SlackDebug("watchdog connection details", {
+            connected: this.rtmClient.connected,
+            currentState: this.rtmClient.stateMachine.getCurrentState(),
+            currentStateAt: stateAt
+          });
+
+          if (lastState === null) {
+            lastState = this.rtmClient.stateMachine.getCurrentState();
+            stateAt = Date.now();
+          }
+
+          if (
+            !this.rtmClient.connected &&
+            lastState == this.rtmClient.stateMachine.getCurrentState() &&
+            (Date.now() - stateAt) / 1000 > maxUnconnectedStateSeconds
+          ) {
+            console.log(
+              "sitting in " +
+                lastState +
+                " for longer than " +
+                maxUnconnectedStateSeconds +
+                " seconds"
+            );
+            //console.log("slack watchdog attempting to force reconnect");
+            console.log(this.rtmClient);
+          }
+
+          if (lastState != this.rtmClient.stateMachine.getCurrentState()) {
+            stateAt = Date.now();
+          }
+          lastState = this.rtmClient.stateMachine.getCurrentState();
+        }, interval);
+
+        this.on("close", () => {
+          clearInterval(intervalId);
+        });
+      };
+      this.connectionWatchdog();
+
+      this.on("close", done => {
+        /**
+         * attempt a disconnect regardless of current state
+         * and simply catch invalid transitions etc
+         */
+        this.rtmClient
+          .disconnect()
+          .then(() => {
+            this.rtmClient.removeAllListeners();
+            done();
+          })
+          .catch(e => {
+            done();
+          });
       });
     }
   }
@@ -610,6 +853,7 @@ module.exports = function(RED) {
 
     if (node.client) {
       SetConfigNodeConnectionListeners(node);
+
       node.clientNode.rtmClient.on("slack_event", (eventType, event) => {
         /**
          * responses to websocket commands come over the without an eventType
