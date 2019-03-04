@@ -94,9 +94,13 @@
 </script>
 
 <script type="text/javascript">
+  /**
+   * slack purple #611f69
+   * lightened up because on the canvas the default is very dark
+   */
+
   RED.nodes.registerType("slack-config", {
     category: "config",
-    color: "BurlyWood",
     defaults: {
       name: { value: "" }
     },
@@ -114,14 +118,17 @@
       client: { type: "slack-config", required: true },
       name: { value: "" }
     },
-    color: "#4C9689",
-    icon: "hash.png",
-    align: "right",
+    color: "#C785CF",
+    icon: "slack_mark_white.png",
+    align: "left",
     inputs: 1,
-    outputs: 1,
+    inputLabels: "state request",
+    outputs: 2,
+    outputLabels: ["state", "state events"],
     label: function() {
       return this.name || "slack-state";
-    }
+    },
+    paletteLabel: "slack-state"
   });
 
   RED.nodes.registerType("slack-web-out", {
@@ -130,14 +137,17 @@
       client: { type: "slack-config", required: true },
       name: { value: "" }
     },
-    color: "#4C9689",
-    icon: "hash.png",
-    align: "right",
+    color: "#C785CF",
+    icon: "slack_mark_white.png",
+    align: "left",
     inputs: 1,
+    inputLabels: "web request",
     outputs: 1,
+    outputLabels: ["web response"],
     label: function() {
       return this.name || "slack-web-out";
-    }
+    },
+    paletteLabel: "slack-web-out"
   });
 
   RED.nodes.registerType("slack-rtm-in", {
@@ -146,14 +156,16 @@
       client: { type: "slack-config", required: true },
       name: { value: "" }
     },
-    color: "#4C9689",
-    icon: "hash.png",
-    align: "right",
+    color: "#C785CF",
+    icon: "slack_mark_white.png",
+    align: "left",
     inputs: 0,
     outputs: 1,
+    outputLabels: ["rtm events"],
     label: function() {
       return this.name || "slack-rtm-in";
-    }
+    },
+    paletteLabel: "slack-rtm-in"
   });
 
   RED.nodes.registerType("slack-rtm-out", {
@@ -162,13 +174,16 @@
       client: { type: "slack-config", required: true },
       name: { value: "" }
     },
-    color: "#4C9689",
-    icon: "hash.png",
-    align: "right",
+    color: "#C785CF",
+    icon: "slack_mark_white.png",
+    align: "left",
     inputs: 1,
+    inputLabels: "rtm request",
     outputs: 1,
+    outputLabels: ["rtm response"],
     label: function() {
       return this.name || "slack-rtm-out";
-    }
+    },
+    paletteLabel: "slack-rtm-out"
   });
 </script>
