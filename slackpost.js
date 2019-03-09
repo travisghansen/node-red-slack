@@ -602,7 +602,12 @@ module.exports = function(RED) {
        * by default autoReconnect=true and keepAlive settings are enabled
        */
       this.rtmClient = new RTMClient(this.credentials.token, {
-        logLevel: process.env.SLACK_DEBUG ? "debug" : "info"
+        logLevel: process.env.SLACK_DEBUG ? "debug" : "info",
+        retryConfig: {
+          forever: true,
+          minTimeout: 1 * 1000,
+          maxTimeout: 5 * 1000
+        }
       });
 
       this.rtmClient.on("disconnected", e => {
@@ -1224,7 +1229,9 @@ module.exports = function(RED) {
          * custom per-method logic
          */
         switch (method) {
-          case "message":
+          case "chat.postMessage":
+          case "chat.postEphemeral":
+          case "chat.meMessage":
             // force text to be a string
             options.text = ValueToString(options.text);
             break;
