@@ -340,11 +340,12 @@ In order to replicate the previous behavior it is possible to introduce simple
 `function` nodes.
 
 Roughly speaking the node equivalents are:
-|`0.1.2` |`2.x` |
-|--------|------|
-|[`slack`](#slack) |[`slack-web-out`](#slack-web-out)|
-|[`Slack Bot In`](#slack-bot-in) |[`slack-rtm-in`](#slack-rtm-in) |
-|[`Slack Bot Out`](#slack-bot-out)|[`slack-rtm-out`](#slack-rtm-out)|
+
+| `0.1.2`                           | `2.x`                             |
+| --------------------------------- | --------------------------------- |
+| [`slack`](#slack)                 | [`slack-web-out`](#slack-web-out) |
+| [`Slack Bot In`](#slack-bot-in)   | [`slack-rtm-in`](#slack-rtm-in)   |
+| [`Slack Bot Out`](#slack-bot-out) | [`slack-rtm-out`](#slack-rtm-out) |
 
 ## `slack`
 
