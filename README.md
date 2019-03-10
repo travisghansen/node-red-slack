@@ -12,6 +12,9 @@ Run the following command in the root directory of your Node-RED install:
 npm install --save node-red-contrib-slack
 ```
 
+Version `2.x` of this package is **NOT** compatible with older versions. Plese
+refer to the [migration](#migration-from-0.1.2-or-ealier) section for help.
+
 # Usage
 
 The nodes included in this package are **purposely** generic in nature. The
@@ -331,10 +334,16 @@ are listening for these events and updating the
 [`slackState.presence`](#slackstate) values appropriately for general
 usage/consumption in your flow(s).
 
-# migration from `0.x.y`
+# migration from `0.1.2` or ealier
 
 In order to replicate the previous behavior it is possible to introduce simple
 `function` nodes.
+
+Roughly speaking the node equivalents are:
+|`0.1.2` |`2.x` |
+|[`slack`](#slack) |[`slack-web-out`](#slack-web-out)|
+|[`Slack Bot In`](#slack-bot-in) |[`slack-rtm-in`](#slack-rtm-in) |
+|[`Slack Bot Out`](#slack-bot-out)|[`slack-rtm-out`](#slack-rtm-out)|
 
 ## `slack`
 
