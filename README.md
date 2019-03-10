@@ -15,13 +15,14 @@ npm install --save node-red-contrib-slack
 # Usage
 
 The nodes included in this package are **purposely** generic in nature. The
-usage very closely mimics the **Slack**
-<a href="https://api.slack.com/" target="_new">API</a>. Your best source of
-reference for input/output specifics will be from:
+usage very closely mimics the
+<a href="https://api.slack.com/" target="_new">Slack API</a>. Your best source
+of reference for input/output specifics will be from:
 
- * https://api.slack.com/web
- * https://api.slack.com/methods
- * https://api.slack.com/rtm
+- https://api.slack.com
+- https://api.slack.com/rtm
+- https://api.slack.com/web
+- https://api.slack.com/methods
 
 The `rtm` API/node(s) are connected to slack via web sockets and are useful for
 receiving a real-time stream of events/data.
@@ -30,19 +31,22 @@ The `web` API/node(s) are useful for making traditional web service calls and
 have a much broader use-case.
 
 Combining both `rtm` and `web` APIs provides a full solution to interact with
-the slack API in it's entirety facilitating powerful flows in `Node-RED`.
-Which nodes are appropriate to use for any given use-case can be subjective so
-familiarizing youself with the documentation links above is **extremely**
-beneficial.
+the <a href="https://api.slack.com/" target="_new">Slack API</a> in it's
+entirety facilitating powerful flows in `Node-RED`. Which nodes are
+appropriate to use for any given use-case can be subjective so familiarizing
+youself with the documentation links above is **extremely** beneficial.
 
-To invoke methods (`slack-rtm-out`, `slack-web-out`) set the `msg.topic` to the
-name of the function/method and set the `msg.payload` to the args/params.
+## invoking methods
+
+To invoke methods ([`slack-rtm-out`](#slack-rtm-out),
+[`slack-web-out`](#slack-web-out)) set the `msg.topic` to the name of the
+method and set the `msg.payload` to the args/params.
 
 The `token` property is **NOT** required to be set in any `msg.payload`.
 
 As an example of invoking the
 <a href="https://api.slack.com/methods/chat.meMessage">`chat.meMessage`</a>
-with the `slack-web-out` node you would do the following:
+with the [`slack-web-out`](#slack-web-out) node you would do the following:
 
 ```
 msg.topic = "chat.meMessage";
@@ -54,50 +58,25 @@ msg.payload = {
 return msg;
 ```
 
-As a convenience for both the `slack-web-out` and `slack-rtm-out` nodes a
-special interface is supported that allows you to send a message with a
-simplified structure (topic starts with `@` or `#`):
-
-```
-msg.topic = "@some_user";
-# or
-msg.topic = "#some_channel";
-msg.payload = "a special message just for you"
-
-return msg
-```
-
-As an additional convenience, if you are invoking the `chat.meMessage`,
-`chat.postEphemeral`, `chat.postMessage` (`slack-web-out`) or `message` method
-(`slack-rtm-out`) and the `channel` starts with `@` or `#` the node will
-automatically lookup the appropriate `channel.id` from `slackState` (see below)
-and set it for you.
-
-All outputs for all nodes include a `msg.slackState` object which has several
-properties containing the lists of `members`/`channels`/`bots`/`team`/etc so
-downstream nodes can do 'lookups' without re-hitting the API (this data is
-currently refreshed in the background every 10 minutes). Additionally the
-internal state is connected to all relevant slack events and updates are
-reflected real-time in any new messages (ie: a user getting created
-automatically updates the `slackState` even before the 10 minute refresh).
-
 ## `dressed` responses
 
 All responses/events are traversed before output to automatically do lookups on
-your behalf to add addiational info directly into the `msg.payload` (examples
+your behalf to add additional info directly into the `msg.payload` (examples
 provided below). All of the lookups are done dynamically/generically so
 regardless of what API response you get if the node finds an attribute that
-appears to be a `user` in some shape or form, it creates `<attribute>Object`
-attribute with the user lookup value.
+appears to be a supported object (`user`/`channel`/`team`/`bot`) in some shape
+or form, an associated `<attribute>Object` attribute with the lookup value will
+be added.
 
 For example, if the response contains a `bot_id` attribute you would see
-`bot_idObject` added, but if it found an attribute called `bot` it would add
-`botObject` etc. Ultimately it's doing all the lookups from `slackState` so it
-could be done on your own but it's added to simplify and for convenience.
+`bot_idObject` added, or if it found an attribute called `bot` it would add
+`botObject` etc. Ultimately all the lookups com from
+[`slackState`](#slackstate) (see below) so it could be done on your own but
+it's added to simplify and for convenience.
 
 An example
 <a href="https://api.slack.com/events/user_typing" target="_new">`user_typing`</a>
-event from the `slack-rtm-in` node:
+event from the [`slack-rtm-in`](#slack-rtm-in) node:
 
 ```
 {
@@ -132,49 +111,103 @@ is `dressed` to be sent as:
 }
 ```
 
-## `slack-rtm-in`
+## Helpers
 
-The `slack-rtm-in` node listens to all **Slack** events as described in the
-<a href="https://api.slack.com/rtm" target="_new">docs</a> and outputs the
-`dressed` response as the `msg.payload`.
+As a convenience for both the [`slack-web-out`](#slack-web-out) and
+[`slack-rtm-out`](#slack-rtm-out) nodes a special interface is supported that
+allows you to send a message with a simplified structure (topic starts with `@`
+or `#`):
 
-## `slack-rtm-out`
+```
+msg.topic = "@some_user";
+# or
+msg.topic = "#some_channel";
 
-Very few <a href="https://api.slack.com/rtm" target="_new">methods</a> exist
-that can be invoked by this node:
+msg.payload = "a special message just for you"
+
+return msg
+```
+
+As an additional convenience, if you are invoking the
+<a href="https://api.slack.com/methods/chat.meMessage" target="_new">`chat.meMessage`</a>,
+<a href="https://api.slack.com/methods/chat.postEphemeral" target="_new">`chat.postEphemeral`</a>,
+<a href="https://api.slack.com/methods/chat.postMessage" target="_new">`chat.postMessage`</a>,
+([`slack-web-out`](#slack-web-out)) or
+<a href="https://api.slack.com/rtm">`message`</a> method
+([`slack-rtm-out`](#slack-rtm-out)) and the `channel` starts with `@` or `#`
+the node will automatically lookup the appropriate `channel.id` from
+[`slackState`](#slackstate) (see below) and set it for you.
+
+## `slackState`
+
+All outputs for all nodes include a `msg.slackState` object which has several
+properties containing the lists of `members`/`channels`/`bots`/`team`/etc so
+downstream nodes can do 'lookups' without re-hitting the API (this data is
+currently refreshed in the background every 10 minutes). Additionally the
+internal state is connected to all relevant slack events and updates are
+reflected real-time in any new messages (ie: a user getting created
+automatically updates the `slackState` even before the 10 minute refresh).
+
+## nodes
+
+### `slack-rtm-in`
+
+The [`slack-rtm-in`](#slack-rtm-in) node listens to all
+<a href="https://api.slack.com/rtm" target="_new">Slack RTM</a> events and
+outputs the [`dressed`](#dressed-responses) response as the `msg.payload`.
+
+### `slack-rtm-out`
+
+Invokes a <a href="https://api.slack.com/rtm" target="_new">Slack RTM</a>
+method and outputs the [`dressed`](#dressed-responses) response as the
+`msg.payload`.
+
+Available methods:
 
 - `message`: send a message
 - `ping`: pong
-- `presence_sub`: to subscribe to presence change events
-- `presence_query`: to request a one-time presence status
+- <a href="https://api.slack.com/events/presence_sub" target="_new">`presence_sub`</a>:
+  to subscribe to
+  <a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
+  events
+- <a href="https://api.slack.com/events/presence_query" target="_new">`presence_query`</a>:
+  to request a one-time
+  <a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
+  status
 - `typing`: to send typing indicators
 
-Using `slack-rtm-out` for sending messages should only be used for very basic
-messages, preference would be to use the `slack-web-out` `chat.postMessage`
-method for anything beyond the simplest messaging use-case as it supports
-`attachments` as well as many other features.
+Using [`slack-rtm-out`](#slack-rtm-out) for sending messages should only be
+used for very basic messages, preference would be to use the
+<a href="https://api.slack.com/methods/chat.postMessage" target="_new">`chat.postMessage`</a>,
+method of the [`slack-web-out`](#slack-web-out) node for anything beyond the
+simplest messaging use-case as it supports
+<a href="https://api.slack.com/docs/attachments" target="_new">`attachments`</a>
+as well as many other features.
 
 <a href="https://api.slack.com/events/presence_sub" target="_new">`presence_sub`</a>
 is a powerful `slack-rtm-out` method that allows you to receive
-`presence` events on the `slack-rtm-in` node. See the presence example below
+<a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
+events on the `slack-rtm-in` node. See the [presence](#presence) example below
 for further details.
 
-## `slack-web-out`
+### `slack-web-out`
 
 You can invoke any of the available
 <a href="https://api.slack.com/methods" target="_new">`methods`</a>. The
-output is the `dressed` response.
+output is the [`dressed`](#dressed-responses) response.
 
-## `slack-state`
+### `slack-state`
 
-`slack-state` outputs a message with `msg.slackState` added. If the
-`msg.payload` sent to `slack-state` is `true` then it will first do a full
-refresh of the state (should not generally be necessary) and then output the
-`msg`.
+[`slack-state`](#slack-state) outputs a message with
+[`msg.slackState`](#slackstate) added. If the `msg.payload` sent to
+[`slack-state`](#slack-state) is `true` then it will first do a full refresh of
+the state (should not generally be necessary) and then output the `msg`.
 
 The `state events` (2nd) output of the node emits a signal when the state has
 been fully initialized after (re)connect. This can be useful if you want to
-perform any post intilization tasks (ie `presence_sub`).
+perform any post initilization tasks (ie:
+<a href="https://api.slack.com/events/presence_sub" target="_new">`presence_sub`</a>
+).
 
 An example `ready` event:
 
@@ -192,7 +225,8 @@ An example `ready` event:
 ## respond to keyword
 
 A simple respond to `keyword` example `function` node to place between a
-`slack-rtm-in` node and a `slack-web-out` node:
+[`slack-rtm-in`](#slack-rtm-in) node and a [`slack-web-out`](#slack-web-out)
+node:
 
 ```
 // ignore anything but messages
@@ -250,13 +284,18 @@ return msg;
 
 ## presence
 
-While the nodes do not automatically subscribe to `presence` events for you,
-it will keep track of `presence` details in `slackState` if any
-`presence_change` events are received (this is all done behind the scenes).
+While the nodes do not automatically subscribe to
+<a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
+events for you, it will keep track of `presence` details in
+[`slackState`](#slackstate) if any
+<a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
+events are received (this is all done behind the scenes).
 
-To subscribe to `presence` events for all your users place the following
-`function` node between the `slack events` output of the `slack-state` node
-and the `slack-rtm-out` node:
+To subscribe to
+<a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
+events for all your users place the following `function` node between the
+`slack events` output of the [`slack-state`](#slack-state) node and the
+[`slack-rtm-out`](#slack-rtm-out) node:
 
 ```
 msg.topic = 'presence_sub';
@@ -275,18 +314,22 @@ return msg;
 ```
 
 The theory of operation is:
- 1. wait for the `slackState` to be initialized so you have a complete list of
- `members`
- 1. iterate that list to build up the appropriate request to `slack-rtm-out`
- 1. subscribe to presence events
- 1. receive presence events on the `slack-rtm-in` node
+
+1.  wait for the `slackState` to be initialized so you have a complete list of
+    `members`
+1.  iterate that list to build up the appropriate request to
+    [`slack-rtm-out`](#slack-rtm-out)
+1.  subscribe to presence events by sending the message to
+    [`slack-rtm-out`](#slack-rtm-out)
+1.  receive presence events on the [`slack-rtm-in`](#slack-rtm-in) node
 
 Immediately after the request is sent you will see a flood of `presence_change`
-events emitted on the `slack-rtm-in` node. Once the initial flood of messages
-has passed continued updates will come through as appropriate. Again, behind
-the scenes the `slack-state` nodes are listening for these events and updating
-the `slackState.presence` values appropriately for general usage/consumption in
-your flow(s).
+events emitted on the [`slack-rtm-in`](#slack-rtm-in) node. Once the initial
+flood of messages has passed continued updates will come through as
+appropriate. Again, behind the scenes the [`slack-state`](#slack-state) nodes
+are listening for these events and updating the
+[`slackState.presence`](#slackstate) values appropriately for general
+usage/consumption in your flow(s).
 
 # migration from `0.x.y`
 
@@ -296,7 +339,7 @@ In order to replicate the previous behavior it is possible to introduce simple
 ## `slack`
 
 To replicate the `slack` node simply place the following `function` node just
-before the new `slack-web-out` node:
+before the new [`slack-web-out`](#slack-web-out) node:
 
 ```
 // https://api.slack.com/methods/chat.postMessage
@@ -343,7 +386,7 @@ return msg;
 ## `Slack Bot In`
 
 To replicate the `Slack Bot In` node simply place the following `function` node
-downstream from the new `slack-rtm-in`node:
+downstream from the new [`slack-rtm-in`](#slack-rtm-in) node:
 
 ```
 // https://api.slack.com/events/message
@@ -397,7 +440,7 @@ return msg;
 ## `Slack Bot Out`
 
 To replicate the `Slack Bot Out` node simply place the following `function`
-node just before the new `slack-rtm-out` node:
+node just before the new [`slack-rtm-out`](#slack-rtm-out) node:
 
 ```
 // set channel
