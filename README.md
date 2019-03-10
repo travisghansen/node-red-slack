@@ -13,7 +13,7 @@ npm install --save node-red-contrib-slack
 ```
 
 Version `2.x` of this package is **NOT** compatible with older versions. Plese
-refer to the [migration](#migration-from-0.1.2-or-ealier) section for help.
+refer to the [migration](#migration-from-012-or-ealier) section for help.
 
 # Usage
 
