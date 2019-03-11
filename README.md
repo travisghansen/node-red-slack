@@ -27,6 +27,13 @@ of reference for input/output specifics will be from:
 - https://api.slack.com/web
 - https://api.slack.com/methods
 
+4 nodes are provided:
+
+- [`slack-rtm-in`](#slack-rtm-in)
+- [`slack-rtm-out`](#slack-rtm-out)
+- [`slack-web-out`](#slack-web-out)
+- [`slack-state`](#slack-state)
+
 The `rtm` API/node(s) are connected to slack via web sockets and are useful for
 receiving a real-time stream of events/data.
 
@@ -433,6 +440,10 @@ if (msg.payload.type != "message") {
 
 // if you only want to watch a specific channel put name here
 var channel = "";
+if (channel && !msg.payload.channelObject) {
+    return null;
+}
+
 if (channel && msg.payload.channelObject.name != channel.replace(/^@/, "").replace(/^#/, "")) {
     return null;
 }
