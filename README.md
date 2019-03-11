@@ -49,7 +49,8 @@ The `token` property is **NOT** required to be set in any `msg.payload`.
 
 As an example of invoking the
 <a href="https://api.slack.com/methods/chat.meMessage">`chat.meMessage`</a>
-with the [`slack-web-out`](#slack-web-out) node you would do the following:
+method with the [`slack-web-out`](#slack-web-out) node you would do the
+following:
 
 ```
 msg.topic = "chat.meMessage";
@@ -243,7 +244,7 @@ if (msg.payload.subtype == "message_deleted") {
 }
 
 // ignore messages from bots
-if (msg.payload.bot_id || msg.payload.userObject.is_bot) {
+if (msg.payload.bot_id || (msg.payload.userObject && msg.payload.userObject.is_bot)) {
     return null;
 }
 
@@ -255,7 +256,11 @@ if (channel && msg.payload.channelObject.name != channel.replace(/^@/, "").repla
 
 // only specific users
 var username = "";
-if (username && msq.payload.userObject.name.replace(/^@/, "") != username) {
+if (username && !msq.payload.userObject) {
+    return null;
+}
+
+if (username && msq.payload.userObject.name.replace(/^@/, "") != username)) {
     return null;
 }
 
@@ -318,21 +323,36 @@ return msg;
 
 The theory of operation is:
 
-1.  wait for the `slackState` to be initialized so you have a complete list of
-    `members`
+1.  wait for the [`slackState`](#slackstate) to be initialized so you have a
+    complete list of `members`
 1.  iterate that list to build up the appropriate request to
     [`slack-rtm-out`](#slack-rtm-out)
 1.  subscribe to presence events by sending the message to
     [`slack-rtm-out`](#slack-rtm-out)
 1.  receive presence events on the [`slack-rtm-in`](#slack-rtm-in) node
 
-Immediately after the request is sent you will see a flood of `presence_change`
+Immediately after the request is sent you will see a flood of
+<a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
 events emitted on the [`slack-rtm-in`](#slack-rtm-in) node. Once the initial
 flood of messages has passed continued updates will come through as
 appropriate. Again, behind the scenes the [`slack-state`](#slack-state) nodes
 are listening for these events and updating the
 [`slackState.presence`](#slackstate) values appropriately for general
 usage/consumption in your flow(s).
+
+If you are really interested in keeping the data updated you could capture
+`team_join` events from a [`slack-rtm-in`](#slack-rtm-in) node and wire those
+to the above `function` node as well triggering the same procedure when new
+users join the `team`. You may need to put a `delay` node before the
+`function` node just to give [`slackState`](#slackstate) enough time to process
+this same event and update.
+
+An alternative would be to wire an `inject` node to the `function` node and put
+it on a sane `interval` such as every 10 minutes.
+
+If you wanted to be **really** sure you are receiving all
+<a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
+events for the whole `team` do all the above.
 
 # migration from `0.1.2` or ealier
 
