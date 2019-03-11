@@ -304,7 +304,7 @@ return msg;
 
 ## presence
 
-While the nodes do not automatically subscribe to
+While [`msg.slackState`](#slackstate) does not automatically subscribe to
 <a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
 events for you, it will keep track of `presence` details in
 [`slackState`](#slackstate) if any
