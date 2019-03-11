@@ -189,10 +189,11 @@ simplest messaging use-case as it supports
 as well as many other features.
 
 <a href="https://api.slack.com/events/presence_sub" target="_new">`presence_sub`</a>
-is a powerful `slack-rtm-out` method that allows you to receive
+is a powerful [`slack-rtm-out`](#slack-rtm-out) method that allows you to
+receive
 <a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
-events on the `slack-rtm-in` node. See the [presence](#presence) example below
-for further details.
+events on the [`slack-rtm-in`](#slack-rtm-in) node. See the
+[presence](#presence) example below for further details.
 
 ### `slack-web-out`
 
@@ -250,6 +251,10 @@ if (msg.payload.bot_id || (msg.payload.userObject && msg.payload.userObject.is_b
 
 // if you only want to watch a specific channel put name here
 var channel = "";
+if (channel && !msg.payload.channelObject) {
+    return null;
+}
+
 if (channel && msg.payload.channelObject.name != channel.replace(/^@/, "").replace(/^#/, "")) {
     return null;
 }
