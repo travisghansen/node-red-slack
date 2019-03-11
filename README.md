@@ -204,9 +204,9 @@ events on the [`slack-rtm-in`](#slack-rtm-in) node. See the
 
 ### `slack-web-out`
 
-You can invoke any of the available
-<a href="https://api.slack.com/methods" target="_new">`methods`</a>. The
-output is the [`dressed`](#dressed-responses) response.
+Invokes a <a href="https://api.slack.com/methods" target="_new">Slack Web</a>
+method and outputs the [`dressed`](#dressed-responses) response as the
+`msg.payload`.
 
 ### `slack-state`
 
