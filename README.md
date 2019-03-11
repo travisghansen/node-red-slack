@@ -126,8 +126,8 @@ is `dressed` to be sent as:
 
 As a convenience for both the [`slack-web-out`](#slack-web-out) and
 [`slack-rtm-out`](#slack-rtm-out) nodes a special interface is supported that
-allows you to send a message with a simplified structure (topic starts with `@`
-or `#`):
+allows you to send a message with a simplified structure (`msg.topic` starts
+with `@` or `#`):
 
 ```
 msg.topic = "@some_user";
@@ -142,8 +142,8 @@ return msg
 As an additional convenience, if you are invoking the
 <a href="https://api.slack.com/methods/chat.meMessage" target="_new">`chat.meMessage`</a>,
 <a href="https://api.slack.com/methods/chat.postEphemeral" target="_new">`chat.postEphemeral`</a>,
-<a href="https://api.slack.com/methods/chat.postMessage" target="_new">`chat.postMessage`</a>,
-([`slack-web-out`](#slack-web-out)) or
+<a href="https://api.slack.com/methods/chat.postMessage" target="_new">`chat.postMessage`</a>
+methods ([`slack-web-out`](#slack-web-out)), or
 <a href="https://api.slack.com/rtm">`message`</a> method
 ([`slack-rtm-out`](#slack-rtm-out)) and the `channel` starts with `@` or `#`
 the node will automatically lookup the appropriate `channel.id` from
