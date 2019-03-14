@@ -136,7 +136,19 @@ module.exports = function(RED) {
       node.status(statuses.connected);
     });
 
-    node.clientNode.rtmClient.on("disconnected", () => {
+    node.clientNode.rtmClient.on("disconnected", e => {
+      var status = statuses.disconnected;
+
+      /**
+       * {
+       *   code: 'slackclient_platform_error',
+       *   data: { ok: false, error: 'invalid_auth' }
+       * }
+       */
+      if (e.code == "slackclient_platform_error" && e.data.ok === false) {
+        status.text = e.data.error;
+      }
+
       node.status(statuses.disconnected);
     });
   }
@@ -612,6 +624,7 @@ module.exports = function(RED) {
 
       this.rtmClient.on("disconnected", e => {
         SlackDebug("disconnected " + this.shortToken(), e);
+        this.log(RED._("node-red:common.status.disconnected") + ' from slack with token: ' + this.shortToken());
         clearInterval(this.refreshIntervalId);
       });
 
@@ -626,6 +639,7 @@ module.exports = function(RED) {
 
       this.rtmClient.on("connected", () => {
         SlackDebug("connected " + this.shortToken());
+        this.log(RED._("node-red:common.status.connected") + ' to slack with token: ' + this.shortToken());
         // what is worse, no data or potentially stale data?
         this.state.presence = {};
 
@@ -845,7 +859,7 @@ module.exports = function(RED) {
                 " seconds"
             );
             //console.log("slack watchdog attempting to force reconnect");
-            console.log(this.rtmClient);
+            //console.log(this.rtmClient);
           }
 
           if (lastState != this.rtmClient.stateMachine.getCurrentState()) {
@@ -858,7 +872,7 @@ module.exports = function(RED) {
           clearInterval(intervalId);
         });
       };
-      this.connectionWatchdog();
+      //this.connectionWatchdog();
 
       this.on("close", done => {
         /**

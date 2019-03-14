@@ -76,8 +76,8 @@ your behalf to add additional info directly into the `msg.payload` (examples
 provided below). All of the lookups are done dynamically/generically so
 regardless of what API response you get if the node finds an attribute that
 appears to be a supported object (`user`/`channel`/`team`/`bot`) in some shape
-or form, an associated `<attribute>Object` attribute with the lookup value will
-be added.
+or form, a corresponding `<attribute>Object` attribute with the lookup value
+will be added.
 
 For example, if the response contains a `bot_id` attribute you would see
 `bot_idObject` added, or if it found an attribute called `bot` it would add
@@ -304,7 +304,7 @@ return msg;
 
 ## presence
 
-While [`msg.slackState`](#slackstate) does not automatically subscribe to
+While [`slackState`](#slackstate) does not automatically subscribe to
 <a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
 events for you, it will keep track of `presence` details in
 [`slackState`](#slackstate) if any
@@ -516,3 +516,6 @@ return msg;
 
 - <a href="http://emoji-cheat-sheet.com" target="_new">Emoji Cheat Sheet</a>
 - <a href="https://api.slack.com/docs/attachments" target="_new">Slack Attachments</a>
+- https://slack.dev/node-slack-sdk/
+- https://slack.dev/node-slack-sdk/rtm_api
+- https://slack.dev/node-slack-sdk/web_api

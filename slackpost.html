@@ -1,5 +1,6 @@
 <!--
   Copyright 2015 Adrian Lansdown
+  Copyright 2019 Travis Glenn Hansen
   Not created by, affiliated with, or supported by Slack Technologies, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,80 +18,220 @@
 
 <script type="text/x-red" data-template-name="slack-config">
   <div class="form-row">
-      <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
-      <input type="text" id="node-config-input-name" placeholder="Name">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="Name">
   </div>
   <div class="form-row">
-      <label for="node-config-input-token"><i class="fa fa-user"></i> Token</label>
-      <input type="text" id="node-config-input-token" placeholder="" />
+    <label for="node-config-input-token"><i class="fa fa-user"></i> Token</label>
+    <input type="text" id="node-config-input-token" placeholder="" />
   </div>
+</script>
+
+<script type="text/x-red" data-help-name="slack-config">
+  <p>Configuration node for Slack.</p>
+
+  <h3>Details</h3>
+  <p>Simply supply your Slack token. A <i>bot</i> token is likely much easier than a <i>user</i> token.</p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://api.slack.com/docs/token-types">Token Types</a> - explanation of Slack token types</li>
+    <li><a href="https://api.slack.com/tokens">Tokens</a> - list of Slack tokens you already have</li>
+    <li><a href="https://api.slack.com">Slack API Introduction</a> - introduction to Slack APIs</li>
+    <li><a href="https://api.slack.com/rtm">Slack RTM API</a> - full description of RTM API</li>
+    <li><a href="https://api.slack.com/web">Slack Web API</a> - full description of Web API</li>
+    <li><a href="https://api.slack.com/methods">Slack Web API Methods</a> - full descriptions of all Web API methods</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack">GitHub</a> - project homepage</li>
+  </ul>
 </script>
 
 <script type="text/x-red" data-template-name="slack-state">
   <div class="form-row">
-      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-      <input type="text" id="node-input-name" placeholder="Name">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
   </div>
   <div class="form-row">
-      <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
-      <input type="text" id="node-input-client">
+    <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
+    <input type="text" id="node-input-client">
   </div>
 </script>
 
 <script type="text/x-red" data-help-name="slack-state">
-  <p>Sends the current slack state (members, channesls, etc) to <b>msg.slackState</b>.</p>
+  <p>Outputs and <i>optionally</i> refreshes the <code>msg.slackState</code> data.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt class="optional">payload
+      <span class="property-type">boolean</span>
+    </dt>
+    <dd>If <code>true</code> then <code>msg.slackState</code> will be refreshed before output.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <ol class="node-ports">
+    <li>State
+      <dl class="message-properties">
+        <dt>slackState <span class="property-type">object</span></dt>
+        <dd>The current state of the slack connection.</dd>
+      </dl>
+    <li>Events
+      <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The state event details.</dd>
+        <dt>slackState <span class="property-type">object</span></dt>
+        <dd>The current state of the slack connection (members, channels, team, etc).</dd>
+      </dl>
+    </li>
+  </ol>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slack-state">slack-state</a> - full description of node behavior</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slackstate">slackState</a> - full description of <code>msg.slackState</code> object</li>
+    <li><a href="https://api.slack.com">Slack API Introduction</a> - introduction to Slack APIs</li>
+    <li><a href="https://api.slack.com/rtm">Slack RTM API</a> - full description of RTM API</li>
+    <li><a href="https://api.slack.com/web">Slack Web API</a> - full description of Web API</li>
+    <li><a href="https://api.slack.com/methods">Slack Web API Methods</a> - full descriptions of all Web API methods</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack">GitHub</a> - project homepage</li>
+  </ul>
 </script>
 
 <script type="text/x-red" data-template-name="slack-web-out">
   <div class="form-row">
-      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-      <input type="text" id="node-input-name" placeholder="Name">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
   </div>
   <div class="form-row">
-      <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
-      <input type="text" id="node-input-client">
+    <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
+    <input type="text" id="node-input-client">
   </div>
 </script>
 
 <script type="text/x-red" data-help-name="slack-web-out">
-  <p>Sends the <b>msg.payload</b> to Slack.</p>
-  <p>Simple way to post to a Slack channel.</p>
-  <p>You can optionally override the destination channel if required - either in the edit dialogue or by setting <b>msg.channel</b>.</p>
-  <p>You can also create <a href="https://api.slack.com/docs/attachments" target="_new">Slack attachments</a> by adding a <b>msg.attachments</b> property that must be an array.</p>
+  <p>Invokes a Slack Web API method and outputs the response.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>topic
+      <span class="property-type">string</span>
+    </dt>
+    <dd>The method name.</dd>
+    <dt class="optional">payload
+      <span class="property-type">object</span>
+    </dt>
+    <dd>The method arguments.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The Slack Web API response.</dd>
+    <dt>slackState <span class="property-type">object</span></dt>
+    <dd>The current state of the slack connection.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>
+    For simple message sending as an alternative the to method/arguments style, you may set the <code>msg.topic</code> to either <code>@username</code> or <code>#channel</code> syntax.
+    If you use this syntax simply set <code>msg.payload</code> the the message you want sent.
+  </p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slack-web-out">slack-web-out</a> - full description of node behavior</li>
+    <li><a href="https://api.slack.com">Slack API Introduction</a> - introduction to Slack APIs</li>
+    <li><a href="https://api.slack.com/web">Slack Web API</a> - full description of Web API</li>
+    <li><a href="https://api.slack.com/methods">Slack Web API Methods</a> - full descriptions of all Web API methods</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slackstate">slackState</a> - full description of <code>msg.slackState</code> object</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack">GitHub</a> - project homepage</li>
+  </ul>
 </script>
 
 <script type="text/x-red" data-template-name="slack-rtm-in">
   <div class="form-row">
-      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-      <input type="text" id="node-input-name" placeholder="Name">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
   </div>
   <div class="form-row">
-      <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
-      <input type="text" id="node-input-client">
+    <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
+    <input type="text" id="node-input-client">
   </div>
 </script>
 
 <script type="text/x-red" data-help-name="slack-rtm-in">
-  <p>Provides a listener in any channel the Slack bot is a member of.</p>
-  <p>Outputs the <b>msg.payload</b> as the incoming message.</p>
-  <p>Outputs <b>msg.SlackObj</b> with full Slack message details.</p>
-  <p>You can optionally limit the channel to listen to in the edit dialogue.</p>
+  <p>Listens to all Slack RTM API events and outputs the event details.</p>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The Slack RTM API event.</dd>
+    <dt>slackState <span class="property-type">object</span></dt>
+    <dd>The current state of the slack connection.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>
+    For a complete list of events emitted with their details review the <a href="https://api.slack.com/rtm">Slack RTM API</a> documentation.
+  </p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slack-rtm-in">slack-rtm-in</a> - full description of node behavior</li>
+    <li><a href="https://api.slack.com">Slack API Introduction</a> - introduction to Slack APIs</li>
+    <li><a href="https://api.slack.com/rtm">Slack RTM API</a> - full description of RTM API</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slackstate">slackState</a> - full description of <code>msg.slackState</code> object</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack">GitHub</a> - project homepage</li>
+  </ul>
 </script>
 
 <script type="text/x-red" data-template-name="slack-rtm-out">
   <div class="form-row">
-      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-      <input type="text" id="node-input-name" placeholder="Name">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
   </div>
   <div class="form-row">
-      <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
-      <input type="text" id="node-input-client">
+    <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
+    <input type="text" id="node-input-client">
   </div>
 </script>
 
 <script type="text/x-red" data-help-name="slack-rtm-out">
-  <p>Sends the <b>msg.payload</b> to Slack based on the Bot API token provided.</p>
-  <p>You can optionally override the destination channel if required - either in the edit dialogue or by setting <b>msg.channel</b>.</p>
+  <p>Invokes a Slack RTM API method and outputs the response.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>topic
+      <span class="property-type">string</span>
+    </dt>
+    <dd>The method name.</dd>
+    <dt class="optional">payload
+      <span class="property-type">object</span>
+    </dt>
+    <dd>The method arguments.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The Slack RTM API response.</dd>
+    <dt>slackState <span class="property-type">object</span></dt>
+    <dd>The current state of the slack connection.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>
+    For simple message sending as an alternative the to method/arguments style, you may set the <code>msg.topic</code> to either <code>@username</code> or <code>#channel</code> syntax.
+    If you use this syntax simply set <code>msg.payload</code> the the message you want sent.
+  </p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slack-rtm-out">slack-rtm-out</a> - full description of node behavior</li>
+    <li><a href="https://api.slack.com">Slack API Introduction</a> - introduction to Slack APIs</li>
+    <li><a href="https://api.slack.com/rtm">Slack RTM API</a> - full description of RTM API</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slackstate">slackState</a> - full description of <code>msg.slackState</code> object</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack">GitHub</a> - project homepage</li>
+  </ul>
 </script>
 
 <script type="text/javascript">
