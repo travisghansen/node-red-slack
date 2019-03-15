@@ -135,6 +135,10 @@ module.exports = function(RED) {
       node.status(status);
     });
 
+    /**
+     * if connectivity is dropped we go from connected -> reconnecting
+     * directly bypassing disconnected
+     */
     node.clientNode.rtmClient.on("reconnecting", () => {
       node.status(statuses.disconnected);
     });
@@ -671,6 +675,10 @@ module.exports = function(RED) {
         clearInterval(this.refreshIntervalId);
       });
 
+      /**
+       * if connectivity is dropped we go from connected -> reconnecting
+       * directly bypassing disconnected
+       */
       this.rtmClient.on("reconnecting", () => {
         SlackDebug("reconnecting " + this.shortToken());
         this.log(
@@ -1011,6 +1019,13 @@ module.exports = function(RED) {
 
         /**
          * ignore non-subscribed events
+         * 
+         * Since the message events are bound to the same object as connection
+         * events this feature has been implemented in this fashion vs directly
+         * subscribing to prevent stupid (ie: someone setting a value of
+         * 'connected' or the like) in node properties. Crude but effective.
+         * 
+         * It also decouples the feature from the semantics of the client.
          */
         if (this.events && eventNames.length > 0) {
           if (
