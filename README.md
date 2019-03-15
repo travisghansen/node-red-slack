@@ -74,14 +74,17 @@ return msg;
 The following nodes each provide
 <a href="https://api.slack.com/" target="_new">Slack API</a> output:
 
-- [`slack-rtm-in`](#slack-rtm-in)
-- [`slack-rtm-out`](#slack-rtm-out)
-- [`slack-web-out`](#slack-web-out)
+- [`slack-rtm-in`](#slack-rtm-in) - view details of each event in the
+  <a href="https://api.slack.com/rtm" target="_new">documentation</a>
+- [`slack-rtm-out`](#slack-rtm-out) - view details of each event in the
+  <a href="https://api.slack.com/rtm" target="_new">documentation</a>
+- [`slack-web-out`](#slack-web-out) - view `response` section of each method in
+  the <a href="https://api.slack.com/methods" target="_new">documentation</a>
 
 The respective events/responses are generally left unaltered and are directly
 passed through as `msg.payload`. However, before outputting the `msg` the data
 is traversed to enrich the `msg.payload` (examples provided below) with
-complete object data where otherwise only inernal Slack IDs are present.
+complete object data where otherwise only internal Slack IDs are present.
 
 All of the lookups are done dynamically/generically so regardless of what API
 response you get if the node finds an attribute that appears to be a
@@ -91,7 +94,7 @@ added.
 
 For example, if the response contains a `bot_id` attribute you would see
 `bot_idObject` added, or if it found an attribute called `bot` it would add
-`botObject` etc. Ultimately all the lookups com from
+`botObject` etc. Ultimately all the lookups come from
 [`slackState`](#slackstate) (see below) so it could be done on your own but
 it's added to simplify and for convenience.
 
