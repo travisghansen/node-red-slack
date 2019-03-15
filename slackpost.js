@@ -1,21 +1,4 @@
 /**
- * Copyright 2015 Adrian Lansdown
- * Not created by, affiliated with, or supported by Slack Technologies, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- **/
-
-/**
  * TODO: create channels transparently when sending to `@` channels?
  * TODO: disable the `interval` to refreshState() since we should have all
  * RTM listeners in place now?
@@ -419,6 +402,7 @@ module.exports = function(RED) {
        */
       this.findMemberById = function(id) {
         SlackDebug("looking up member: " + id);
+        this.state.members = this.state.members || {};
         return this.state.members[id];
       };
 
@@ -427,6 +411,7 @@ module.exports = function(RED) {
        */
       this.findMemberByName = function(name) {
         SlackDebug("looking up member: " + name);
+        this.state.members = this.state.members || {};
         for (var id in this.state.members) {
           if (this.state.members.hasOwnProperty(id)) {
             if (
@@ -444,6 +429,7 @@ module.exports = function(RED) {
        */
       this.findChannelById = function(id) {
         SlackDebug("looking up channel: " + id);
+        this.state.channels = this.state.channels || {};
         return this.state.channels[id];
       };
 
@@ -454,6 +440,9 @@ module.exports = function(RED) {
        *  D - Direct (user to user)
        */
       this.findChannelByName = function(name, type = null) {
+        SlackDebug("looking up channel: " + name);
+        this.state.channels = this.state.channels || {};
+
         /**
          * this purposely does a lookup on both regardless to handle
          * use-cases where the # or @ is ommitted completely
@@ -463,7 +452,6 @@ module.exports = function(RED) {
 
         // do lockup by member name
         var member = this.findMemberByName(name);
-        SlackDebug("found member", member);
         if (member) {
           for (var id in this.state.channels) {
             if (this.state.channels.hasOwnProperty(id)) {
@@ -624,7 +612,11 @@ module.exports = function(RED) {
 
       this.rtmClient.on("disconnected", e => {
         SlackDebug("disconnected " + this.shortToken(), e);
-        this.log(RED._("node-red:common.status.disconnected") + ' from slack with token: ' + this.shortToken());
+        this.log(
+          RED._("node-red:common.status.disconnected") +
+            " from slack with token: " +
+            this.shortToken()
+        );
         clearInterval(this.refreshIntervalId);
       });
 
@@ -639,7 +631,11 @@ module.exports = function(RED) {
 
       this.rtmClient.on("connected", () => {
         SlackDebug("connected " + this.shortToken());
-        this.log(RED._("node-red:common.status.connected") + ' to slack with token: ' + this.shortToken());
+        this.log(
+          RED._("node-red:common.status.connected") +
+            " to slack with token: " +
+            this.shortToken()
+        );
         // what is worse, no data or potentially stale data?
         this.state.presence = {};
 
@@ -979,7 +975,16 @@ module.exports = function(RED) {
 
     var node = this;
     this.client = n.client;
+    this.events = n.events;
     this.clientNode = RED.nodes.getNode(this.client);
+
+    var eventNames;
+    if (this.events) {
+      eventNames = this.events
+        .replace(/[\s]+/g, "")
+        .split(",")
+        .filter(Boolean);
+    }
 
     node.status(statuses.disconnected);
 
@@ -993,6 +998,21 @@ module.exports = function(RED) {
         if (eventType === undefined) {
           eventType = "ws_response";
           event.type = eventType;
+        }
+
+        /**
+         * ignore non-subscribed events
+         */
+        if (this.events && eventNames.length > 0) {
+          if (
+            !(
+              eventNames.includes(event.type) ||
+              (event.subtype &&
+                eventNames.includes(`${event.type}::${event.subtype}`))
+            )
+          ) {
+            return null;
+          }
         }
 
         /**

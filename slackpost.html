@@ -1,21 +1,3 @@
-<!--
-  Copyright 2015 Adrian Lansdown
-  Copyright 2019 Travis Glenn Hansen
-  Not created by, affiliated with, or supported by Slack Technologies, Inc.
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
--->
-
 <script type="text/x-red" data-template-name="slack-config">
   <div class="form-row">
     <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
@@ -79,7 +61,7 @@
         <dt>payload <span class="property-type">object</span></dt>
         <dd>The state event details.</dd>
         <dt>slackState <span class="property-type">object</span></dt>
-        <dd>The current state of the slack connection (members, channels, team, etc).</dd>
+        <dd>The current state of the slack connection.</dd>
       </dl>
     </li>
   </ol>
@@ -96,57 +78,6 @@
   </ul>
 </script>
 
-<script type="text/x-red" data-template-name="slack-web-out">
-  <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Name">
-  </div>
-  <div class="form-row">
-    <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
-    <input type="text" id="node-input-client">
-  </div>
-</script>
-
-<script type="text/x-red" data-help-name="slack-web-out">
-  <p>Invokes a Slack Web API method and outputs the response.</p>
-
-  <h3>Inputs</h3>
-  <dl class="message-properties">
-    <dt>topic
-      <span class="property-type">string</span>
-    </dt>
-    <dd>The method name.</dd>
-    <dt class="optional">payload
-      <span class="property-type">object</span>
-    </dt>
-    <dd>The method arguments.</dd>
-  </dl>
-
-  <h3>Outputs</h3>
-  <dl class="message-properties">
-    <dt>payload <span class="property-type">object</span></dt>
-    <dd>The Slack Web API response.</dd>
-    <dt>slackState <span class="property-type">object</span></dt>
-    <dd>The current state of the slack connection.</dd>
-  </dl>
-
-  <h3>Details</h3>
-  <p>
-    For simple message sending as an alternative the to method/arguments style, you may set the <code>msg.topic</code> to either <code>@username</code> or <code>#channel</code> syntax.
-    If you use this syntax simply set <code>msg.payload</code> the the message you want sent.
-  </p>
-
-  <h3>References</h3>
-  <ul>
-    <li><a href="https://github.com/yayadrian/node-red-slack#slack-web-out">slack-web-out</a> - full description of node behavior</li>
-    <li><a href="https://api.slack.com">Slack API Introduction</a> - introduction to Slack APIs</li>
-    <li><a href="https://api.slack.com/web">Slack Web API</a> - full description of Web API</li>
-    <li><a href="https://api.slack.com/methods">Slack Web API Methods</a> - full descriptions of all Web API methods</li>
-    <li><a href="https://github.com/yayadrian/node-red-slack#slackstate">slackState</a> - full description of <code>msg.slackState</code> object</li>
-    <li><a href="https://github.com/yayadrian/node-red-slack">GitHub</a> - project homepage</li>
-  </ul>
-</script>
-
 <script type="text/x-red" data-template-name="slack-rtm-in">
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
@@ -156,10 +87,15 @@
     <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
     <input type="text" id="node-input-client">
   </div>
+  <div class="form-row">
+    <label for="node-input-events"><i class="fa fa-filter"></i> Slack Events</label>
+    <input type="text" id="node-input-events" placeholder="message">
+  </div>
+  <div class="form-tips"><b>Tip:</b> Leave blank to receive <b>ALL</b> events.</div>
 </script>
 
 <script type="text/x-red" data-help-name="slack-rtm-in">
-  <p>Listens to all Slack RTM API events and outputs the event details.</p>
+  <p>Listens to Slack RTM API events and outputs the event details.</p>
 
   <h3>Outputs</h3>
   <dl class="message-properties">
@@ -172,6 +108,11 @@
   <h3>Details</h3>
   <p>
     For a complete list of events emitted with their details review the <a href="https://api.slack.com/rtm">Slack RTM API</a> documentation.
+  </p>
+  <p>
+    By default the node will listen to <b>ALL</b> events (<code>slack_event</code>).  You can however filter event types by setting the node <em>Slack Events</em> property
+    to a value taking the form of <code>type[::subtype][,type[::subtype],...]</code>.  For example <code>message</code> to receive only events of type <code>message</code>
+    or <code>message::bot_message</code> to receive only events of type <code>message</code> which additionally have a <code>subtype</code> of <code>bot_message</code>.
   </p>
 
   <h3>References</h3>
@@ -234,6 +175,57 @@
   </ul>
 </script>
 
+<script type="text/x-red" data-template-name="slack-web-out">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-client"><i class="fa fa-user"></i> Slack Client</label>
+    <input type="text" id="node-input-client">
+  </div>
+</script>
+
+<script type="text/x-red" data-help-name="slack-web-out">
+  <p>Invokes a Slack Web API method and outputs the response.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>topic
+      <span class="property-type">string</span>
+    </dt>
+    <dd>The method name.</dd>
+    <dt class="optional">payload
+      <span class="property-type">object</span>
+    </dt>
+    <dd>The method arguments.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The Slack Web API response.</dd>
+    <dt>slackState <span class="property-type">object</span></dt>
+    <dd>The current state of the slack connection.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>
+    For simple message sending as an alternative the to method/arguments style, you may set the <code>msg.topic</code> to either <code>@username</code> or <code>#channel</code> syntax.
+    If you use this syntax simply set <code>msg.payload</code> the the message you want sent.
+  </p>
+
+  <h3>References</h3>
+  <ul>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slack-web-out">slack-web-out</a> - full description of node behavior</li>
+    <li><a href="https://api.slack.com">Slack API Introduction</a> - introduction to Slack APIs</li>
+    <li><a href="https://api.slack.com/web">Slack Web API</a> - full description of Web API</li>
+    <li><a href="https://api.slack.com/methods">Slack Web API Methods</a> - full descriptions of all Web API methods</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack#slackstate">slackState</a> - full description of <code>msg.slackState</code> object</li>
+    <li><a href="https://github.com/yayadrian/node-red-slack">GitHub</a> - project homepage</li>
+  </ul>
+</script>
+
 <script type="text/javascript">
   /**
    * slack purple #611f69
@@ -272,30 +264,12 @@
     paletteLabel: "slack-state"
   });
 
-  RED.nodes.registerType("slack-web-out", {
-    category: "social",
-    defaults: {
-      client: { type: "slack-config", required: true },
-      name: { value: "" }
-    },
-    color: "#C785CF",
-    icon: "slack_mark_white.png",
-    align: "left",
-    inputs: 1,
-    inputLabels: "web request",
-    outputs: 1,
-    outputLabels: ["web response"],
-    label: function() {
-      return this.name || "slack-web-out";
-    },
-    paletteLabel: "slack-web-out"
-  });
-
   RED.nodes.registerType("slack-rtm-in", {
     category: "social",
     defaults: {
       client: { type: "slack-config", required: true },
-      name: { value: "" }
+      name: { value: "" },
+      events: { value: "" }
     },
     color: "#C785CF",
     icon: "slack_mark_white.png",
@@ -326,5 +300,24 @@
       return this.name || "slack-rtm-out";
     },
     paletteLabel: "slack-rtm-out"
+  });
+
+  RED.nodes.registerType("slack-web-out", {
+    category: "social",
+    defaults: {
+      client: { type: "slack-config", required: true },
+      name: { value: "" }
+    },
+    color: "#C785CF",
+    icon: "slack_mark_white.png",
+    align: "left",
+    inputs: 1,
+    inputLabels: "web request",
+    outputs: 1,
+    outputLabels: ["web response"],
+    label: function() {
+      return this.name || "slack-web-out";
+    },
+    paletteLabel: "slack-web-out"
   });
 </script>

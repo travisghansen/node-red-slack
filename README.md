@@ -13,7 +13,7 @@ npm install --save node-red-contrib-slack
 ```
 
 Version `2.x` of this package is **NOT** compatible with older versions. Plese
-refer to the [migration](#migration-from-012-or-ealier) section for help.
+refer to the [migration](#migration-from-012-or-earlier) section for help.
 
 # Usage
 
@@ -69,15 +69,25 @@ msg.payload = {
 return msg;
 ```
 
-## `dressed` responses
+## `dressed` output
 
-All responses/events are traversed before output to automatically do lookups on
-your behalf to add additional info directly into the `msg.payload` (examples
-provided below). All of the lookups are done dynamically/generically so
-regardless of what API response you get if the node finds an attribute that
-appears to be a supported object (`user`/`channel`/`team`/`bot`) in some shape
-or form, a corresponding `<attribute>Object` attribute with the lookup value
-will be added.
+The following nodes each provide
+<a href="https://api.slack.com/" target="_new">Slack API</a> output:
+
+- [`slack-rtm-in`](#slack-rtm-in)
+- [`slack-rtm-out`](#slack-rtm-out)
+- [`slack-web-out`](#slack-web-out)
+
+The respective events/responses are generally left unaltered and are directly
+passed through as `msg.payload`. However, before outputting the `msg` the data
+is traversed to enrich the `msg.payload` (examples provided below) with
+complete object data where otherwise only inernal Slack IDs are present.
+
+All of the lookups are done dynamically/generically so regardless of what API
+response you get if the node finds an attribute that appears to be a
+supported object (`user`/`channel`/`team`/`bot`) in some shape or form, a
+corresponding `<attribute>Object` attribute with the lookup value will be
+added.
 
 For example, if the response contains a `bot_id` attribute you would see
 `bot_idObject` added, or if it found an attribute called `bot` it would add
@@ -163,14 +173,21 @@ automatically updates the `slackState` even before the 10 minute refresh).
 
 ### `slack-rtm-in`
 
-The [`slack-rtm-in`](#slack-rtm-in) node listens to all
+The [`slack-rtm-in`](#slack-rtm-in) node listens to
 <a href="https://api.slack.com/rtm" target="_new">Slack RTM</a> events and
-outputs the [`dressed`](#dressed-responses) response as the `msg.payload`.
+outputs the [`dressed`](#dressed-output) response as the `msg.payload`.
+
+By default the node will listen to <b>ALL</b> events. You can however filter
+event types by setting the node <em>Slack Events</em> property to a value
+taking the form of `type[::subtype][,type[::subtype],...]`. For example
+`message` to receive only events of type `message` or `message::bot_message` to
+receive only events of type `message` which additionally have a `subtype` of
+`bot_message`.
 
 ### `slack-rtm-out`
 
 Invokes a <a href="https://api.slack.com/rtm" target="_new">Slack RTM</a>
-method and outputs the [`dressed`](#dressed-responses) response as the
+method and outputs the [`dressed`](#dressed-output) response as the
 `msg.payload`.
 
 Available methods:
@@ -205,8 +222,11 @@ events on the [`slack-rtm-in`](#slack-rtm-in) node. See the
 ### `slack-web-out`
 
 Invokes a <a href="https://api.slack.com/methods" target="_new">Slack Web</a>
-method and outputs the [`dressed`](#dressed-responses) response as the
+method and outputs the [`dressed`](#dressed-output) response as the
 `msg.payload`.
+
+See the [sending a message](#sending-a-message) example for advanced message
+sending.
 
 ### `slack-state`
 
@@ -233,6 +253,36 @@ An example `ready` event:
 ```
 
 # Examples / Advanced
+
+## sending a message
+
+While you can send messages using the simplified syntax (`msg.topic` starts
+with `@` or `#` and `msg.payload` is the message) using either the
+[`slack-web-out`](#slack-web-out) or the [`slack-rtm-out`](#slack-rtm-out)
+nodes, your use-case may require more control. The most advanced message
+sending can be accomplished by invoking the
+<a href="https://api.slack.com/methods/chat.postMessage" target="_new">`chat.postMessage`</a>
+method of the [`slack-web-out`](#slack-web-out) node:
+
+```
+var topic = "chat.postMessage";
+
+var payload = {
+    // channel: "@someuser",
+    // or
+    // channel: "#somechannel",
+    text: "hi from bot",
+    ...
+    // review linked documentation for all options
+}
+
+msg = {
+  topic: topic,
+  payload: payload
+}
+
+return msg;
+```
 
 ## respond to keyword
 
@@ -366,7 +416,7 @@ If you wanted to be **really** sure you are receiving all
 <a href="https://api.slack.com/events/presence_change" target="_new">`presence_change`</a>
 events for the whole `team` do all the above.
 
-# migration from `0.1.2` or ealier
+# migration from `0.1.2` or earlier
 
 In order to replicate the previous behavior it is possible to introduce simple
 `function` nodes.
