@@ -132,6 +132,10 @@ module.exports = function(RED) {
         status.text = e.data.error;
       }
 
+      node.status(status);
+    });
+
+    node.clientNode.rtmClient.on("reconnecting", () => {
       node.status(statuses.disconnected);
     });
   }
@@ -669,6 +673,11 @@ module.exports = function(RED) {
 
       this.rtmClient.on("reconnecting", () => {
         SlackDebug("reconnecting " + this.shortToken());
+        this.log(
+          RED._("node-red:common.status.disconnected") +
+            " from slack with token: " +
+            this.shortToken()
+        );
         clearInterval(this.refreshIntervalId);
       });
 
