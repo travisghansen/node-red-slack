@@ -187,6 +187,36 @@ taking the form of `type[::subtype][,type[::subtype],...]`. For example
 receive only events of type `message` which additionally have a `subtype` of
 `bot_message`.
 
+Example output:
+
+```
+{
+  "payload" {
+    "type": "user_typing",
+    "channel": "...",
+    "user": "...",
+    "channelObject": {
+        "id": "...",
+        "name": "...",
+        "is_channel": true,
+        "is_group": false,
+        "is_im": false,
+        "created": 1434735155,
+        ...
+    },
+    "userObject": {
+        "id": "...",
+        "name": "...",
+        "real_name": "...",
+        ...
+    }
+  },
+  "slackState": {
+    ...
+  }
+}
+```
+
 ### `slack-rtm-out`
 
 Invokes a <a href="https://api.slack.com/rtm" target="_new">Slack RTM</a>
@@ -222,6 +252,33 @@ receive
 events on the [`slack-rtm-in`](#slack-rtm-in) node. See the
 [presence](#presence) example below for further details.
 
+Example input:
+
+```
+msg.topic = 'presence_query';
+msg.payload = {
+    ids: [
+        '...'
+    ]
+}
+return msg;
+```
+
+Example output:
+
+```
+{
+  "topic": "presence_query",
+  "payload": {
+    "ok":true,
+    "type":"presence_query"
+  },
+  "slackState": {
+    ...
+  }
+}
+```
+
 ### `slack-web-out`
 
 Invokes a <a href="https://api.slack.com/methods" target="_new">Slack Web</a>
@@ -230,6 +287,53 @@ method and outputs the [`dressed`](#dressed-output) response as the
 
 See the [sending a message](#sending-a-message) example for advanced message
 sending.
+
+Example input:
+
+```
+msg.topic = "chat.meMessage";
+msg.payload = {
+    channel: "...",
+    text: "..."
+}
+
+return msg;
+```
+
+Example output:
+
+```
+{
+  "topic": "chat.meMessage",
+  "payload": {
+    "channel": "...",
+    "ts": "1552705036.049000",
+    "ok": true,
+    "scopes": [
+      "identify",
+      "read",
+      "post",
+      "client",
+      "apps"
+    ],
+    "acceptedScopes": [
+      "chat:write:user",
+      "post"
+    ],
+    "channelObject": {
+      "id": "...",
+      ...
+      "userObject": {
+        "id": "...",
+        ...
+      }
+    }
+  },
+  "slackState": {
+    ...
+  }
+}
+```
 
 ### `slack-state`
 
@@ -244,14 +348,33 @@ perform any post initilization tasks (ie:
 <a href="https://api.slack.com/events/presence_sub" target="_new">`presence_sub`</a>
 ).
 
-An example `ready` event:
+Example input:
+
+```
+msg.payload = true; // force a refresh
+return msg;
+```
+
+Example output (state):
 
 ```
 {
-    "type": "ready",
-    "slackState": {
-        ...
-    }
+  "slackState": {
+    ...
+  }
+}
+```
+
+Example output (state events):
+
+```
+{
+  "payload": {
+    "type":"ready"
+  },
+  "slackState": {
+    ...
+  }
 }
 ```
 
