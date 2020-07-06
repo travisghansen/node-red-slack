@@ -6,8 +6,8 @@
 module.exports = function(RED) {
   "use strict";
 
-  const { RTMClient } = require("@slack/client");
-  const { WebClient } = require("@slack/client");
+  const { RTMClient } = require("@slack/rtm-api");
+  const { WebClient } = require("@slack/web-api");
 
   /**
    * https://nodered.org/docs/creating-nodes/status
