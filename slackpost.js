@@ -2,8 +2,10 @@
  * TODO: create channels transparently when sending to `@` channels?
  * TODO: disable the `interval` to refreshState() since we should have all
  * RTM listeners in place now?
+ *
+ * https://nodered.org/blog/2019/09/20/node-done
  */
-module.exports = function(RED) {
+module.exports = function (RED) {
   "use strict";
 
   const { RTMClient } = require("@slack/rtm-api");
@@ -21,7 +23,7 @@ module.exports = function(RED) {
     misconfigured: { fill: "red", shape: "ring", text: "misconfigured" },
     error: { fill: "red", shape: "dot", text: "error" },
     sending: { fill: "blue", shape: "dot", text: "sending" },
-    blank: {}
+    blank: {},
   };
 
   function SlackDebug() {
@@ -119,7 +121,7 @@ module.exports = function(RED) {
       node.status(statuses.connected);
     });
 
-    node.clientNode.rtmClient.on("disconnected", e => {
+    node.clientNode.rtmClient.on("disconnected", (e) => {
       var status = statuses.disconnected;
 
       /**
@@ -169,7 +171,7 @@ module.exports = function(RED) {
         rcount++;
         client
           .apiCall(method, options)
-          .then(res => {
+          .then((res) => {
             data = data.concat(res[property]);
 
             /**
@@ -188,7 +190,7 @@ module.exports = function(RED) {
               resolve(data);
             }
           })
-          .catch(e => {
+          .catch((e) => {
             reject(e);
           });
       }
@@ -214,7 +216,7 @@ module.exports = function(RED) {
     this.webClient = null;
     this.rtmClient = null;
 
-    this.shortToken = function() {
+    this.shortToken = function () {
       if (this.credentials && this.credentials.hasOwnProperty("token")) {
         var token = this.credentials.token;
         return token.substr(0, 8) + "..." + token.substr(token.length - 3);
@@ -241,7 +243,7 @@ module.exports = function(RED) {
       /**
        * meta method to refresh all state data
        */
-      this.refreshState = function() {
+      this.refreshState = function () {
         SlackDebug("refreshing state " + this.shortToken());
         var promises = [];
         promises.push(this.refreshTeam());
@@ -255,7 +257,7 @@ module.exports = function(RED) {
           .then(() => {
             this.emit("state_refreshed", {});
           })
-          .catch(e => {
+          .catch((e) => {
             this.error(e);
           });
       };
@@ -263,7 +265,7 @@ module.exports = function(RED) {
       /**
        * update local cache of channels
        */
-      this.refreshChannels = function() {
+      this.refreshChannels = function () {
         /**
          * TODO: ensure this does not happen too frequent
          * get all channels
@@ -276,17 +278,17 @@ module.exports = function(RED) {
           {
             limit: 1000,
             exclude_archived: true,
-            types: "public_channel,private_channel,im,mpim"
+            types: "public_channel,private_channel,im,mpim",
           }
         )
-          .then(res => {
+          .then((res) => {
             var channels = {};
-            res.forEach(item => {
+            res.forEach((item) => {
               channels[item.id] = item;
             });
             this.state.channels = channels;
           })
-          .catch(e => {
+          .catch((e) => {
             this.error(e);
           });
       };
@@ -294,7 +296,7 @@ module.exports = function(RED) {
       /**
        * update local cache of members
        */
-      this.refreshMembers = function() {
+      this.refreshMembers = function () {
         /**
          * TODO: ensure this does not happen too frequent
          * get all members
@@ -305,18 +307,18 @@ module.exports = function(RED) {
           "users.list",
           "members",
           {
-            limit: 1000
+            limit: 1000,
           }
         )
-          .then(res => {
+          .then((res) => {
             this.state.presence = this.state.presence || {};
             var members = {};
-            res.forEach(item => {
+            res.forEach((item) => {
               members[item.id] = item;
             });
             this.state.members = members;
           })
-          .catch(e => {
+          .catch((e) => {
             this.error(e);
           });
       };
@@ -324,7 +326,7 @@ module.exports = function(RED) {
       /**
        * update local cache of bots
        */
-      this.refreshBots = function() {
+      this.refreshBots = function () {
         var promises = [];
         this.state.bots = this.state.bots || {};
 
@@ -333,10 +335,10 @@ module.exports = function(RED) {
             SlackDebug("webrequest to find bot: " + id);
             var p = this.webClient
               .apiCall("bots.info", { bot: id })
-              .then(res => {
+              .then((res) => {
                 this.state.bots[id] = res.bot;
               })
-              .catch(e => {
+              .catch((e) => {
                 this.error(e);
               });
 
@@ -348,7 +350,7 @@ module.exports = function(RED) {
           .then(() => {
             // TODO: update any internal flags?
           })
-          .catch(e => {
+          .catch((e) => {
             this.error(e);
           });
       };
@@ -356,17 +358,17 @@ module.exports = function(RED) {
       /**
        * update local cache of team
        */
-      this.refreshTeam = function() {
+      this.refreshTeam = function () {
         /**
          * TODO: ensure this does not happen too frequent
          * https://api.slack.com/methods/team.info
          */
         return this.webClient
           .apiCall("team.info")
-          .then(res => {
+          .then((res) => {
             this.state.team = res.team;
           })
-          .catch(e => {
+          .catch((e) => {
             this.error(e);
           });
       };
@@ -374,7 +376,7 @@ module.exports = function(RED) {
       /**
        * update local cache of identity
        */
-      this.refreshUser = function() {
+      this.refreshUser = function () {
         /**
          * TODO: ensure this does not happen too frequent
          * https://api.slack.com/methods/users.identity
@@ -382,10 +384,10 @@ module.exports = function(RED) {
         if (this.state.connection.self.id) {
           return this.webClient
             .apiCall("users.identity", { user: this.state.connection.self.id })
-            .then(res => {
+            .then((res) => {
               this.state.user = res.user;
             })
-            .catch(e => {
+            .catch((e) => {
               //this.error(e);
             });
         }
@@ -394,13 +396,13 @@ module.exports = function(RED) {
       /**
        * update local cache of dnd
        */
-      this.refreshDnd = function() {
+      this.refreshDnd = function () {
         return this.webClient
           .apiCall("dnd.teamInfo")
-          .then(res => {
+          .then((res) => {
             this.state.dnd = res.users;
           })
-          .catch(e => {
+          .catch((e) => {
             //this.error(e);
           });
       };
@@ -408,7 +410,7 @@ module.exports = function(RED) {
       /**
        * lookup member based off of id
        */
-      this.findMemberById = function(id) {
+      this.findMemberById = function (id) {
         SlackDebug("looking up member: " + id);
         this.state.members = this.state.members || {};
         return this.state.members[id];
@@ -417,7 +419,7 @@ module.exports = function(RED) {
       /**
        * lookup member based off of name or @name syntax
        */
-      this.findMemberByName = function(name) {
+      this.findMemberByName = function (name) {
         SlackDebug("looking up member: " + name);
         this.state.members = this.state.members || {};
         for (var id in this.state.members) {
@@ -435,7 +437,7 @@ module.exports = function(RED) {
       /**
        * lookup channel based off of id
        */
-      this.findChannelById = function(id) {
+      this.findChannelById = function (id) {
         SlackDebug("looking up channel: " + id);
         this.state.channels = this.state.channels || {};
         return this.state.channels[id];
@@ -447,7 +449,7 @@ module.exports = function(RED) {
        *  G - Group (multiuser, and private channels)
        *  D - Direct (user to user)
        */
-      this.findChannelByName = function(name, type = null) {
+      this.findChannelByName = function (name, type = null) {
         SlackDebug("looking up channel: " + name);
         this.state.channels = this.state.channels || {};
 
@@ -500,7 +502,7 @@ module.exports = function(RED) {
       /**
        * lookup bot based off of id
        */
-      this.findBotById = function(id) {
+      this.findBotById = function (id) {
         SlackDebug("looking up bot: " + id);
         this.state.bots = this.state.bots || {};
         var bot = this.state.bots[id];
@@ -509,10 +511,10 @@ module.exports = function(RED) {
           SlackDebug("webrequest to find bot: " + id);
           this.webClient
             .apiCall("bots.info", { bot: id })
-            .then(res => {
+            .then((res) => {
               this.state.bots[id] = res.bot;
             })
-            .catch(e => {
+            .catch((e) => {
               //ignore
             });
         }
@@ -524,7 +526,7 @@ module.exports = function(RED) {
        * Takes raw responses from RTM/Web API and adds additional properties
        * to help looking up names/etc as msg flows through nodered
        */
-      this.dressResponseMessage = function(res) {
+      this.dressResponseMessage = function (res) {
         var node = this;
         var depth = 0;
         function recurse(data) {
@@ -614,11 +616,11 @@ module.exports = function(RED) {
         retryConfig: {
           forever: true,
           minTimeout: 1 * 1000,
-          maxTimeout: 5 * 1000
-        }
+          maxTimeout: 5 * 1000,
+        },
       });
 
-      this.rtmClient.on("disconnected", e => {
+      this.rtmClient.on("disconnected", (e) => {
         SlackDebug("disconnected " + this.shortToken(), e);
         this.log(
           RED._("node-red:common.status.disconnected") +
@@ -651,13 +653,13 @@ module.exports = function(RED) {
           .then(() => {
             this.emit("state_initialized", {});
           })
-          .catch(e => {
+          .catch((e) => {
             this.error(e);
           });
 
         // TODO: make this a node configurable item
         var interval = 10 * 60 * 1000;
-        this.refreshIntervalId = setInterval(function() {
+        this.refreshIntervalId = setInterval(function () {
           node.refreshState();
         }, interval);
 
@@ -689,11 +691,11 @@ module.exports = function(RED) {
         clearInterval(this.refreshIntervalId);
       });
 
-      this.rtmClient.on("error", e => {
+      this.rtmClient.on("error", (e) => {
         SlackDebug("error " + this.shortToken(), e);
       });
 
-      this.rtmClient.on("unable_to_rtm_start", e => {
+      this.rtmClient.on("unable_to_rtm_start", (e) => {
         SlackDebug("unable_to_rtm_start " + this.shortToken(), e);
       });
 
@@ -731,11 +733,11 @@ module.exports = function(RED) {
           case "im_created":
             this.webClient
               .apiCall("channels.info", { channel: event.channel.id })
-              .then(res => {
+              .then((res) => {
                 this.state.channels = this.state.channels || {};
                 this.state.channels[res.channel.id] = res.channel;
               })
-              .catch(e => {
+              .catch((e) => {
                 console.log("failed getting channel info", e);
               });
             break;
@@ -753,11 +755,11 @@ module.exports = function(RED) {
           case "member_left_channel":
             this.webClient
               .apiCall("channels.info", { channel: event.channel })
-              .then(res => {
+              .then((res) => {
                 this.state.channels = this.state.channels || {};
                 this.state.channels[res.channel.id] = res.channel;
               })
-              .catch(e => {
+              .catch((e) => {
                 console.log("failed getting channel info", e);
               });
             break;
@@ -767,17 +769,17 @@ module.exports = function(RED) {
               var res = {
                 type: event.type,
                 presence: event.presence,
-                user: event.user
+                user: event.user,
               };
               this.state.presence[event.user] = res;
             }
 
             if (event.users) {
-              event.users.forEach(user => {
+              event.users.forEach((user) => {
                 var res = {
                   type: event.type,
                   presence: event.presence,
-                  user: user
+                  user: user,
                 };
                 this.state.presence[user] = res;
               });
@@ -788,7 +790,7 @@ module.exports = function(RED) {
             this.this.state.presence[this.state.connection.self.id] = {
               type: event.type,
               presence: event.presence,
-              user: this.state.connection.self.id
+              user: this.state.connection.self.id,
             };
             break;
           case "dnd_updated":
@@ -805,10 +807,10 @@ module.exports = function(RED) {
           case "team_profile_reorder":
             this.webClient
               .apiCall("team.info")
-              .then(res => {
+              .then((res) => {
                 this.state.team = res.team;
               })
-              .catch(e => {
+              .catch((e) => {
                 console.log("failed getting team info", e);
               });
             break;
@@ -818,7 +820,7 @@ module.exports = function(RED) {
         }
       });
 
-      this.startClient = function() {
+      this.startClient = function () {
         /**
          * may consider using the .connect() method instead
          * https://api.slack.com/methods/rtm.start
@@ -826,7 +828,7 @@ module.exports = function(RED) {
          */
         this.rtmClient
           .start()
-          .then(res => {
+          .then((res) => {
             SlackDebug("start result " + this.shortToken(), res);
             this.state.connection = {};
             this.state.connection.self = res.self;
@@ -834,14 +836,14 @@ module.exports = function(RED) {
             this.state.connection.scopes = res.scopes;
             this.state.connection.acceptedScopes = res.acceptedScopes;
           })
-          .catch(e => {
+          .catch((e) => {
             console.log("failed starting slack session", e);
           });
       };
       this.startClient();
 
       //start watchdog
-      this.connectionWatchdog = function() {
+      this.connectionWatchdog = function () {
         //var interval = (5 * 60 * 1000);
         var interval = 15 * 1000;
         var lastState = null;
@@ -851,7 +853,7 @@ module.exports = function(RED) {
           SlackDebug("watchdog connection details", {
             connected: this.rtmClient.connected,
             currentState: this.rtmClient.stateMachine.getCurrentState(),
-            currentStateAt: stateAt
+            currentStateAt: stateAt,
           });
 
           if (lastState === null) {
@@ -887,27 +889,31 @@ module.exports = function(RED) {
       };
       //this.connectionWatchdog();
 
-      this.on("close", done => {
+      this.on("close", (done) => {
         /**
          * attempt a disconnect regardless of current state
          * and simply catch invalid transitions etc
          */
-        this.rtmClient
-          .disconnect()
-          .then(() => {
-            this.rtmClient.removeAllListeners();
-            done();
-          })
-          .catch(e => {
-            done();
-          });
+        if (this.rtmClient.connected) {
+          this.rtmClient
+            .disconnect()
+            .then(() => {
+              this.rtmClient.removeAllListeners();
+              done();
+            })
+            .catch((e) => {
+              done();
+            });
+        } else {
+          done();
+        }
       });
     }
   }
   RED.nodes.registerType("slack-config", SlackConfig, {
     credentials: {
-      token: { type: "text" }
-    }
+      token: { type: "text" },
+    },
   });
 
   /**
@@ -927,8 +933,15 @@ module.exports = function(RED) {
     if (node.client) {
       SetConfigNodeConnectionListeners(node);
 
-      node.on("input", function(msg) {
+      node.on("input", function (msg, send, done) {
         SlackDebug("slack-state incoming message", msg);
+
+        // support of 1.0+ and pre-1.0
+        send =
+          send ||
+          function () {
+            node.send.apply(node, arguments);
+          };
 
         node.status(statuses.sending);
 
@@ -940,24 +953,33 @@ module.exports = function(RED) {
             .refreshState()
             .then(() => {
               msg.slackState = node.clientNode.state;
-              node.send(msg);
+              send(msg);
               node.status(statuses.connected);
+              if (done) {
+                done();
+              }
             })
-            .catch(e => {
+            .catch((e) => {
               SlackDebug("slack-state error response", e.data);
               msg.payload = e.data;
-              node.send(msg);
+              send(msg);
               node.status(statuses.connected);
+              if (done) {
+                done();
+              }
             });
         } else {
           msg.slackState = node.clientNode.state;
-          node.send(msg);
+          send(msg);
           node.status(statuses.connected);
+          if (done) {
+            done();
+          }
         }
       });
 
-      ["state_initialized"].forEach(eventName => {
-        node.clientNode.on(eventName, e => {
+      ["state_initialized"].forEach((eventName) => {
+        node.clientNode.on(eventName, (e) => {
           node.status(statuses.sending);
           var msg = {};
 
@@ -969,7 +991,7 @@ module.exports = function(RED) {
 
           msg.slackState = node.clientNode.state;
           msg.payload = {
-            type: eventName
+            type: eventName,
           };
           node.send([null, msg]);
           node.status(statuses.connected);
@@ -997,10 +1019,7 @@ module.exports = function(RED) {
 
     var eventNames;
     if (this.events) {
-      eventNames = this.events
-        .replace(/[\s]+/g, "")
-        .split(",")
-        .filter(Boolean);
+      eventNames = this.events.replace(/[\s]+/g, "").split(",").filter(Boolean);
     }
 
     node.status(statuses.disconnected);
@@ -1019,12 +1038,12 @@ module.exports = function(RED) {
 
         /**
          * ignore non-subscribed events
-         * 
+         *
          * Since the message events are bound to the same object as connection
          * events this feature has been implemented in this fashion vs directly
          * subscribing to prevent stupid (ie: someone setting a value of
          * 'connected' or the like) in node properties. Crude but effective.
-         * 
+         *
          * It also decouples the feature from the semantics of the client.
          */
         if (this.events && eventNames.length > 0) {
@@ -1090,8 +1109,15 @@ module.exports = function(RED) {
     if (node.client) {
       SetConfigNodeConnectionListeners(node);
 
-      node.on("input", function(msg) {
+      node.on("input", function (msg, send, done) {
         SlackDebug("slack-rtm-out incoming message", msg);
+
+        // support of 1.0+ and pre-1.0
+        send =
+          send ||
+          function () {
+            node.send.apply(node, arguments);
+          };
 
         /**
          * message, presence_sub, presence_query, ping, and typing.
@@ -1104,7 +1130,12 @@ module.exports = function(RED) {
           typeof method !== "string" ||
           !method instanceof String
         ) {
-          node.error("invalid msg.topic");
+          if (done) {
+            done("invalid msg.topic");
+          } else {
+            node.error("invalid msg.topic", msg);
+          }
+
           return null;
         }
 
@@ -1127,13 +1158,18 @@ module.exports = function(RED) {
         if (method[0] == "@" || method[0] == "#") {
           var channel = node.clientNode.findChannelByName(method);
           if (!channel || !channel.id) {
-            node.error("invalid channel: " + method);
+            if (done) {
+              done("invalid channel: " + method);
+            } else {
+              node.error("invalid channel: " + method, msg);
+            }
+
             return null;
           }
           method = "message";
           options = {
             text: msg.payload,
-            channel: channel.id
+            channel: channel.id,
           };
         }
 
@@ -1184,7 +1220,7 @@ module.exports = function(RED) {
         SlackDebug("slack-rtm-out call", method, options);
         node.clientNode.rtmClient
           .addOutgoingEvent(awaitReply, method, options)
-          .then(res => {
+          .then((res) => {
             /**
              * mock a response for methods which return nothing
              * ie: everything but message and ping
@@ -1192,20 +1228,26 @@ module.exports = function(RED) {
             if (typeof res === "undefined") {
               res = {
                 ok: true,
-                type: method
+                type: method,
               };
             }
 
             SlackDebug("slack-rtm-out call response", res);
             msg.payload = res;
-            node.send(msg);
+            send(msg);
             node.status(statuses.connected);
+            if (done) {
+              done();
+            }
           })
-          .catch(e => {
+          .catch((e) => {
             SlackDebug("slack-rtm-out error response", e.data);
             msg.payload = e.data;
-            node.send(msg);
+            send(msg);
             node.status(statuses.connected);
+            if (done) {
+              done();
+            }
           });
       });
     } else {
@@ -1233,8 +1275,15 @@ module.exports = function(RED) {
     if (node.client) {
       SetConfigNodeConnectionListeners(node);
 
-      node.on("input", function(msg) {
+      node.on("input", function (msg, send, done) {
         SlackDebug("slack-web-out incoming message", msg);
+
+        // support of 1.0+ and pre-1.0
+        send =
+          send ||
+          function () {
+            node.send.apply(node, arguments);
+          };
 
         var method = msg.topic;
         var options = msg.payload;
@@ -1244,7 +1293,12 @@ module.exports = function(RED) {
           typeof method !== "string" ||
           !method instanceof String
         ) {
-          node.error("invalid msg.topic");
+          if (done) {
+            done("invalid msg.topic");
+          } else {
+            node.error("invalid msg.topic", msg);
+          }
+
           return null;
         }
 
@@ -1256,7 +1310,8 @@ module.exports = function(RED) {
         if (
           method == "chat.postMessage" ||
           method == "chat.postEphemeral" ||
-          method == "chat.meMessage"
+          method == "chat.meMessage" ||
+          method == "chat.scheduleMessage"
         ) {
           if (options.channel[0] == "@" || options.channel[0] == "#") {
             var channel = node.clientNode.findChannelByName(options.channel);
@@ -1272,13 +1327,18 @@ module.exports = function(RED) {
         if (method[0] == "@" || method[0] == "#") {
           var channel = node.clientNode.findChannelByName(method);
           if (!channel || !channel.id) {
-            node.error("invalid channel: " + method);
+            if (done) {
+              done("invalid channel: " + method);
+            } else {
+              node.error("invalid channel: " + method, msg);
+            }
+
             return null;
           }
           method = "chat.postMessage";
           options = {
             channel: channel.id,
-            text: msg.payload
+            text: msg.payload,
             //as_user: true
           };
         }
@@ -1290,6 +1350,7 @@ module.exports = function(RED) {
           case "chat.postMessage":
           case "chat.postEphemeral":
           case "chat.meMessage":
+          case "chat.scheduleMessage":
             // force text to be a string
             options.text = ValueToString(options.text);
             break;
@@ -1301,17 +1362,23 @@ module.exports = function(RED) {
         SlackDebug("slack-web-out call", method, options);
         node.clientNode.webClient
           .apiCall(method, options)
-          .then(res => {
+          .then((res) => {
             SlackDebug("slack-web-out call response", res);
             msg.payload = node.clientNode.dressResponseMessage(res);
-            node.send(msg);
+            send(msg);
             node.status(statuses.connected);
+            if (done) {
+              done();
+            }
           })
-          .catch(e => {
+          .catch((e) => {
             SlackDebug("slack-web-out error response", e.data);
             msg.payload = e.data;
-            node.send(msg);
+            send(msg);
             node.status(statuses.connected);
+            if (done) {
+              done();
+            }
           });
       });
     } else {
