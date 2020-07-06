@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-slack",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A node-red module to interact with the Slack API",
   "main": "slackpost.js",
   "scripts": {
@@ -25,6 +25,6 @@
   "author": "Adrian Lansdown",
   "license": "MIT",
   "dependencies": {
-    "@slack/client": "^4.11.0"
+    "@slack/client": "^5.0.2"
   }
 }
