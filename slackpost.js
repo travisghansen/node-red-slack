@@ -928,7 +928,7 @@ module.exports = function(RED) {
       SetConfigNodeConnectionListeners(node);
 
       node.on("input", function(msg) {
-        SlackDebug("slack-state incomiming message", msg);
+        SlackDebug("slack-state incoming message", msg);
 
         node.status(statuses.sending);
 
@@ -1091,7 +1091,7 @@ module.exports = function(RED) {
       SetConfigNodeConnectionListeners(node);
 
       node.on("input", function(msg) {
-        SlackDebug("slack-rtm-out incomiming message", msg);
+        SlackDebug("slack-rtm-out incoming message", msg);
 
         /**
          * message, presence_sub, presence_query, ping, and typing.
@@ -1234,7 +1234,7 @@ module.exports = function(RED) {
       SetConfigNodeConnectionListeners(node);
 
       node.on("input", function(msg) {
-        SlackDebug("slack-web-out incomiming message", msg);
+        SlackDebug("slack-web-out incoming message", msg);
 
         var method = msg.topic;
         var options = msg.payload;
