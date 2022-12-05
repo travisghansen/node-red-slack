@@ -1,9 +1,5 @@
 # node-red-contrib-slack
 
----
-# ⚠️ This project is not currently actively supported.  
----
-
 A <a href="http://nodered.org" target="_new">Node-RED</a> node to interact with
 the <a href="https://slack.com/" target="_new">Slack</a>
 <a href="https://api.slack.com/" target="_new">API</a>.
