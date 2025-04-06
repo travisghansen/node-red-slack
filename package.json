@@ -25,6 +25,7 @@
   "author": "Adrian Lansdown",
   "license": "MIT",
   "dependencies": {
-    "@slack/client": "^5.0.2"
+    "@slack/rtm-api": "^7.0.3",
+    "@slack/web-api": "^7.9.1"
   }
 }
